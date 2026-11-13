@@ -8,6 +8,19 @@ Dibangun lengkap secara bertahap: v0.1 fondasi + preset, menuju manajemen
 aplikasi/bloatware (v0.2), tampilan & jaringan (v0.3), dan profil per
 aplikasi (v0.4). Rancangan lengkap ada di [`RANCANGAN.md`](RANCANGAN.md).
 
+## Perbaikan v0.3.3 — Diagnosis refresh tanpa potongan
+
+Temuan dari log diagnosis v0.3.2 di Infinix user: panel memang punya
+mode asli 60/90/120/144Hz; `mDesiredDisplayModeSpecs` ikut bergerak ke
+120 saat `peak_refresh_rate=120`, tapi `baseModeId` & mode aktif
+SurfaceFlinger tetap 90Hz, dan XOS menulis ulang `peak_refresh_rate`
+jadi 90.0 dari waktu ke waktu — gerbangnya ada di pemilihan mode
+display versi vendor, bukan di settings. Diagnosis v0.3.2 terpotong
+tepat 40 kunci sehingga ekor daftar (yang bisa memuat kunci penentu)
+hilang. v0.3.3: daftar kunci diagnosis **tanpa cap** + pola tambahan
+"preferred", dan grep dumpsys diperluas ke baris preferred/baseMode/
+activeMode/desiredDisplay.
+
 ## Perbaikan v0.3.2 — Log Eksekusi rinci
 
 Atas permintaan user, log tidak lagi cuma ringkasan teks. Tab Log kini

@@ -474,8 +474,9 @@ object Optimizer {
 
     /**
      * Diagnosis refresh rate: tulis semua kunci settings yang mengandung
-     * "refresh"/"tran_" dari ketiga namespace + ringkasan mode display
-     * aktif ke Log aplikasi, supaya bisa disalin user sebagai bahan bukti.
+     * "refresh"/"tran_"/"preferred" dari ketiga namespace (TANPA cap —
+     * v0.3.2 memotong di 40 kunci dan ekor daftarnya hilang) + baris
+     * dumpsys display soal refresh/preferred/mode aktif ke Log aplikasi.
      */
     suspend fun diagnoseRefreshRate(context: Context): TweakResult = withContext(Dispatchers.IO) {
         val sb = StringBuilder("=== Diagnosis refresh rate ===")
@@ -483,14 +484,15 @@ object Optimizer {
             val out = shell("settings list $ns")?.takeIf { it.ok }?.output.orEmpty()
             val hits = out.lines().filter { line ->
                 val low = line.lowercase()
-                ("refresh" in low || "tran_" in low) && line.isNotBlank()
-            }.take(40)
+                ("refresh" in low || "tran_" in low || "preferred" in low) && line.isNotBlank()
+            }
             sb.append("\n-- $ns (${hits.size} kunci) --")
             if (hits.isEmpty()) sb.append("\n(tidak ada)")
             hits.forEach { sb.append("\n$it") }
         }
-        val disp = shell("dumpsys display | grep -i refresh | head -25")?.takeIf { it.ok }?.output.orEmpty()
-        sb.append("\n-- dumpsys display (baris refresh) --")
+        val disp = shell("dumpsys display | grep -iE 'refresh|preferred|baseMode|activeMode|desiredDisplay' | head -40")
+            ?.takeIf { it.ok }?.output.orEmpty()
+        sb.append("\n-- dumpsys display (refresh/preferred/mode) --")
         if (disp.isBlank()) sb.append("\n(tidak terbaca)") else sb.append("\n").append(disp.trim())
         OptStore.addLog(context, sb.toString())
         TweakResult(

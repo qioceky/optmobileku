@@ -686,7 +686,8 @@ private fun InfoTab() {
         Text(
             "v0.1: fondasi Shizuku + preset + animasi/baterai/ART/cache + snapshot & pulihkan.\n" +
                 "v0.2 (ini): manajemen aplikasi & bloatware — tab Aplikasi (bucket standby, Doze, background, suspend, nonaktifkan/copot reversibel + daftar lindung).\n" +
-                "v0.3.2 (ini): Log Eksekusi rinci — setiap perintah shell tercatat dengan kode exit, durasi, dan output mentahnya di tab Log (Salin Log kini menggabungkan Log Perubahan + Log Eksekusi).\n" +
+                "v0.3.3 (ini): Diagnosis Refresh Rate tanpa potongan — semua kunci refresh/tran_/preferred tampil penuh + baris mode display aktif dari dumpsys, untuk memburu gerbang 90Hz di XOS.\n" +
+                "v0.3.2: Log Eksekusi rinci — setiap perintah shell tercatat dengan kode exit, durasi, dan output mentahnya di tab Log (Salin Log kini menggabungkan Log Perubahan + Log Eksekusi).\n" +
                 "v0.3.1: perbaikan refresh rate untuk HP Transsion (Infinix/Tecno) — menulis jalur generik + kunci vendor tran_*, tombol 144Hz, dan Diagnosis Refresh Rate ke tab Log.\n" +
                 "v0.3: tampilan & jaringan — DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset.\n" +
                 "v0.4: profil per aplikasi (Mode Game / Mode Tidur).",
