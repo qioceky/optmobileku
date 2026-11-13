@@ -1,6 +1,9 @@
 # RANCANGAN — Opt Mobileku (settingan optimasi Android via Shizuku)
 
-Tanggal: 2026-11-13. Status: **v0.3.0 RILIS 2026-11-13** atas perintah
+Tanggal: 2026-11-13. Status: **v0.3.1 RILIS 2026-11-14** (fix refresh
+rate jalur Transsion `tran_*` setelah uji lapangan v0.3.0 di Infinix
+ditolak & lock 60Hz; CI hijau, signer sama).
+**v0.3.0 RILIS 2026-11-13** atas perintah
 user ("Lanjutkan" kedua — v0.3 tampilan & jaringan; CI hijau, signer sama).
 **v0.2.0 RILIS 2026-11-13** atas perintah
 user ("Lanjutkan") — CI run `43450776481` hijau setelah 1x perbaikan
