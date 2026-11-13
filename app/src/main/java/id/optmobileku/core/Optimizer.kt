@@ -325,6 +325,35 @@ object Optimizer {
                 if (okR) "Kembali ke asal (${sizeOrig ?: "bawaan"}) ✓" else "Terbaca balik override=$back",
             )
         }
+        // Pulihkan kunci tersembunyi (v0.6): entri snapshot generik
+        // "hidden:<namespace>:<key>" dari tab Tersembunyi.
+        val snapJson = OptStore.readSnapshot(context)
+        val snapIds = snapJson.keys()
+        while (snapIds.hasNext()) {
+            val id = snapIds.next()
+            if (!id.startsWith("hidden:")) continue
+            val parts = id.split(":", limit = 3)
+            if (parts.size < 3) continue
+            val ns = parts[1]
+            val key = parts[2]
+            val original = if (snapJson.isNull(id)) null else snapJson.optString(id)
+            if (original == null) {
+                shell("settings delete $ns $key")
+                val back = readSettingRaw(ns, key)
+                results += TweakResult(
+                    "Pulihkan (tersembunyi) $key", back == null,
+                    if (back == null) "Kembali tidak ada (asal) ✓" else "Masih terbaca: $back",
+                )
+            } else {
+                val put = shell("settings put $ns $key $original")
+                val back = readSettingRaw(ns, key)
+                val okR = put != null && put.ok && valuesEqual(original, back)
+                results += TweakResult(
+                    "Pulihkan (tersembunyi) $key", okR,
+                    if (okR) "Kembali ke asal ($original) ✓" else "Gagal — terbaca balik ${back ?: "tidak ada"}",
+                )
+            }
+        }
         if (results.isNotEmpty() && results.all { it.success }) {
             OptStore.setPreset(context, "Belum ada (sudah dipulihkan)")
         }

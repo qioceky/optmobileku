@@ -34,6 +34,28 @@ Eksekusi dalam satu teks. Implementasi: hook `execLogger` di
 `ShizukuCtl.execBlocking` (satu-satunya gerbang eksekusi) → file
 `exec_log.txt` terpisah via `OptStore`.
 
+## Fitur v0.6.0 — Pemindai fitur tersembunyi (tab Rahasia)
+
+Atas permintaan user ("cari fitur tersembunyi", keduanya dipilih):
+
+- **Kunci setting tersembunyi**: pindai `settings list` di
+  system/secure/global, disaring pola menarik (refresh/fps, GPU &
+  render, animasi, thermal, game, layar, baterai, vendor `tran_*`…).
+  Tampil nama + namespace + nilai sekarang, dengan pencarian. Ketuk
+  kunci untuk detail: nilai angka/boolean bisa **diubah** — nilai asal
+  disnapshot generik (`hidden:<ns>:<key>`, ikut **Pulihkan Semua**),
+  penulisan dibaca-balik; nilai teks/JSON hanya bisa dilihat & disalin
+  namanya. `Optimizer.restoreAll` diperluas memulihkan entri
+  `hidden:` secara generik.
+- **Menu tersembunyi**: (a) kode rahasia — 4636 (Testing), 8255,
+  7594 — dikirim sebagai broadcast `SECRET_CODE` lewat shell, setara
+  mengetik di dialer; (b) pemindai aktivitas **exported** berpola
+  engineer/test/debug/hidden/secret/factory/diagnosa/kalibrasi dari
+  semua aplikasi terpasang, ketuk untuk membuka langsung.
+- Batas jujur dinyatakan di UI: aplikasi tidak bisa memverifikasi
+  layar tujuan benar-benar tampil (kode bisa tak punya penerima;
+  aktivitas bisa langsung menutup).
+
 ## Fitur v0.5.0 — Ekspor log, ringkasan, tile Quick Settings
 
 Dipilih user dari daftar usulan (opsi 2 + 3; ekspor/impor data tidak

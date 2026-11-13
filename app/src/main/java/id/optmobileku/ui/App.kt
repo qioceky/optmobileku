@@ -145,7 +145,7 @@ fun OptMobilekuApp() {
             Column(
                 Modifier
                     .weight(1f)
-                    .then(if (tab != 2) Modifier.verticalScroll(scrollState) else Modifier)
+                    .then(if (tab != 2 && tab != 3) Modifier.verticalScroll(scrollState) else Modifier)
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 // Header
@@ -221,7 +221,12 @@ fun OptMobilekuApp() {
                         ready = shizukuState == ShizukuCtl.State.READY,
                         onAfterAction = { reloadLocal() },
                     )
-                    3 -> LogTab(
+                    3 -> HiddenTab(
+                        ready = shizukuState == ShizukuCtl.State.READY,
+                        onCopyText = { copyToClipboard(context, "optmobileku-kunci", it) },
+                        onAfterAction = { reloadLocal() },
+                    )
+                    4 -> LogTab(
                         logLines = logLines,
                         execLines = execLines,
                         onCopyLog = {
@@ -254,7 +259,7 @@ fun OptMobilekuApp() {
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val tabs = listOf("Beranda", "Optimasi", "Aplikasi", "Log", "Info")
+                val tabs = listOf("Beranda", "Optimasi", "Aplikasi", "Rahasia", "Log", "Info")
                 tabs.forEachIndexed { i, label ->
                     Box(
                         Modifier
@@ -720,6 +725,18 @@ private fun LogTab(
 @Composable
 private fun InfoTab() {
     val context = LocalContext.current
+    Text("TAB RAHASIA (v0.6)", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
+    Spacer(Modifier.height(7.dp))
+    NeoCard {
+        Text(
+            "Tab Rahasia memindai fitur tersembunyi HP kamu: kunci setting di luar Pengaturan " +
+                "(disaring dari system/secure/global) dan menu rahasia aplikasi. Mengubah nilai kunci " +
+                "selalu disnapshot dulu dan ikut Pulihkan Semua. Sebagian kunci hanyalah cerminan sistem " +
+                "yang akan ditimpa lagi oleh HP — hasil baca-balik di tab itu akan mengatakannya terus terang.",
+            fontSize = 13.sp
+        )
+    }
+    Spacer(Modifier.height(11.dp))
     Text("TILE QUICK SETTINGS (v0.5)", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
     Spacer(Modifier.height(7.dp))
     NeoCard {
@@ -782,7 +799,8 @@ private fun InfoTab() {
                 "v0.3.1: perbaikan refresh rate untuk HP Transsion (Infinix/Tecno) — menulis jalur generik + kunci vendor tran_*, tombol 144Hz, dan Diagnosis Refresh Rate ke tab Log.\n" +
                 "v0.3: tampilan & jaringan — DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset.\n" +
                 "v0.4: profil per aplikasi — 🎮 Mode Game / 😴 Mode Tidur di tab Aplikasi (bucket + Doze + background sekaligus, snapshot asal, Lepas Profil, Terapkan Ulang Semua) + ekspor snapshot JSON di tab Info.\n" +
-                "v0.5 (ini): Ekspor Log ke file (simpan/bagikan, dengan header info HP) + ringkasan hitungan sukses/gagal di tab Log + Tile Quick Settings untuk memutar preset.",
+                "v0.5: Ekspor Log ke file (simpan/bagikan, dengan header info HP) + ringkasan hitungan sukses/gagal di tab Log + Tile Quick Settings untuk memutar preset.\n" +
+                "v0.6 (ini): tab Rahasia — pemindai fitur tersembunyi: kunci setting (lihat/ubah aman, snapshot generik ikut Pulihkan Semua) + menu tersembunyi (kode rahasia & layar exported berpola rahasia).",
             fontSize = 13.sp
         )
     }
