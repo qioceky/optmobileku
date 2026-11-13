@@ -1,6 +1,15 @@
 # RANCANGAN — Opt Mobileku (settingan optimasi Android via Shizuku)
 
-Tanggal: 2026-11-13. Status: **v0.3.3 RILIS 2026-11-14** (diagnosis
+Tanggal: 2026-11-13. Status: **v0.4.0 RILIS 2026-11-14** atas perintah
+user ("Lanjutkan") — profil per aplikasi: Mode Game (bucket active +
+whitelist Doze + bg allow) / Mode Tidur (restricted + cabut whitelist +
+bg ignore), snapshot trio otomatis + Lepas Profil memulihkan keadaan
+asal, penanda hanya bila 3/3 baca-balik sukses, Terapkan Ulang Semua
+Profil, ekspor snapshot JSON di Info, teks plafon refresh XOS
+terverifikasi; CI run `43525127947` hijau setelah 1x fix urutan
+deklarasi fungsi lokal, APK 6.636.168 byte, SHA-256 `45f19317…58da6`,
+signer SAMA (menimpa v0.3.3). Menunggu uji lapangan profil user.
+**v0.3.3 RILIS 2026-11-14** (diagnosis
 refresh tanpa cap; bukti dumpsys: gerbang 90Hz di pemilihan mode vendor).
 **v0.3.2 RILIS 2026-11-14** (Log Eksekusi
 rinci: perintah + exit + output, atas permintaan user; CI hijau, signer sama).
