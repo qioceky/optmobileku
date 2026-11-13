@@ -1,6 +1,10 @@
 # RANCANGAN — Opt Mobileku (settingan optimasi Android via Shizuku)
 
-Tanggal: 2026-11-13. Status: scaffold v0.1.0 dikerjakan 2026-11-13.
+Tanggal: 2026-11-13. Status: **v0.1.0 RILIS 2026-11-13** (repo PUBLIK
+`qioceky/optmobileku`, CI run `43448045885` HIJAU sekali jalan, APK
+6.537.828 byte, SHA-256 APK `8eb72bd1…1f9c`, signer SHA-256
+`A34A3196…764D` terverifikasi apksigner resmi di CI dan lokal, kelas
+manifest semua ada di DEX). Menunggu uji lapangan user.
 Keputusan user (2026-11-13 21:54 WIB): **lengkap bertahap, mulai dari
 v0.1 preset** — roadmap v0.1 → v0.4 di bawah dikunci.
 Catatan v0.1: izin `QUERY_ALL_PACKAGES` DITUNDA ke v0.2 (belum dibutuhkan
