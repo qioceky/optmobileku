@@ -8,7 +8,23 @@ Dibangun lengkap secara bertahap: v0.1 fondasi + preset, menuju manajemen
 aplikasi/bloatware (v0.2), tampilan & jaringan (v0.3), dan profil per
 aplikasi (v0.4). Rancangan lengkap ada di [`RANCANGAN.md`](RANCANGAN.md).
 
-## Fitur v0.2.0 — Manajemen aplikasi & bloatware (baru)
+## Fitur v0.3.0 — Tampilan & jaringan (baru)
+
+Di tab Optimasi, dua seksi baru — semua ikut **snapshot & Pulihkan Semua**:
+
+- **Jaringan**: DNS Pribadi (Mati / Otomatis / Hostname + kolom hostname),
+  Penghemat Data global (`cmd netpolicy set restrict-background`),
+  Scan WiFi selalu aktif ON/OFF.
+- **Tampilan**: skala font (0.85–1.3), **refresh rate eksperimental**
+  (peak 60/90/120 + lepas, paksa-tetap min=peak; selalu dibaca-balik —
+  bila HP menolak, UI bilang menolak), kepadatan layar (`wm density`
+  ±20 / Reset, dengan konfirmasi), ukuran layar (`wm size` 90% / Reset,
+  dengan konfirmasi).
+- Catatan kejujuran: status penghemat data tidak punya jalur baca-balik
+  yang stabil di semua HP; bila tidak terbaca, UI menyatakannya apa
+  adanya, bukan mengklaim terverifikasi.
+
+## Fitur v0.2.0 — Manajemen aplikasi & bloatware
 
 - **Tab Aplikasi**: daftar semua aplikasi (pengguna + sistem), cari nama /
   package, filter Semua / Pengguna / Sistem / Nonaktif.

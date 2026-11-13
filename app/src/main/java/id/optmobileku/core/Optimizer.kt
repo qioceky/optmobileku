@@ -40,7 +40,21 @@ object Optimizer {
     private val ADAPTIVE_KEY = TrackedKey("global", "adaptive_battery_management_enabled")
     private val LOW_POWER_KEY = TrackedKey("global", "low_power")
 
-    private val ALL_TRACKED = ANIM_KEYS + ADAPTIVE_KEY + LOW_POWER_KEY
+    // v0.3 — jaringan & tampilan (semua ikut snapshot & Pulihkan Semua)
+    private val DNS_MODE_KEY = TrackedKey("global", "private_dns_mode")
+    private val DNS_HOST_KEY = TrackedKey("global", "private_dns_specifier")
+    private val WIFI_SCAN_KEY = TrackedKey("global", "wifi_scan_always_enabled")
+    private val FONT_SCALE_KEY = TrackedKey("system", "font_scale")
+    private val PEAK_HZ_KEY = TrackedKey("system", "peak_refresh_rate")
+    private val MIN_HZ_KEY = TrackedKey("system", "min_refresh_rate")
+
+    private val ALL_TRACKED = ANIM_KEYS + ADAPTIVE_KEY + LOW_POWER_KEY +
+        listOf(DNS_MODE_KEY, DNS_HOST_KEY, WIFI_SCAN_KEY, FONT_SCALE_KEY, PEAK_HZ_KEY, MIN_HZ_KEY)
+
+    // Snapshot non-settings (bukan kunci settings): status netpolicy & wm.
+    const val SNAP_NETPOLICY = "special/netpolicy_restrict"
+    const val SNAP_WM_DENSITY = "special/wm_density"
+    const val SNAP_WM_SIZE = "special/wm_size"
 
     // ---------- Util shell ----------
 
@@ -265,10 +279,267 @@ object Optimizer {
                 )
             }
         }
+        // Pulihkan item non-settings (netpolicy & wm) dari snapshot spesial.
+        val (npExists, npOrig) = OptStore.snapshotValue(context, SNAP_NETPOLICY)
+        if (npExists) {
+            val on = npOrig == "true"
+            val r = shell("cmd netpolicy set restrict-background $on")
+            val back = readRestrictBackground()
+            val okR = r != null && r.ok && (back == null || back == on)
+            results += TweakResult(
+                "Pulihkan penghemat data",
+                okR,
+                if (okR) "Kembali ke asal (${if (on) "ON" else "OFF"}) ✓" else "Gagal memulihkan netpolicy",
+            )
+        }
+        val (densExists, densOrig) = OptStore.snapshotValue(context, SNAP_WM_DENSITY)
+        if (densExists) {
+            val r = if (densOrig == null) shell("wm density reset") else shell("wm density $densOrig")
+            val back = readWmDensity().second
+            val okR = r != null && r.ok && back == densOrig
+            results += TweakResult(
+                "Pulihkan kepadatan layar",
+                okR,
+                if (okR) "Kembali ke asal (${densOrig ?: "bawaan"}) ✓" else "Terbaca balik override=$back",
+            )
+        }
+        val (sizeExists, sizeOrig) = OptStore.snapshotValue(context, SNAP_WM_SIZE)
+        if (sizeExists) {
+            val r = if (sizeOrig == null) shell("wm size reset") else shell("wm size $sizeOrig")
+            val back = readWmSize().second
+            val okR = r != null && r.ok && back == sizeOrig
+            results += TweakResult(
+                "Pulihkan ukuran layar",
+                okR,
+                if (okR) "Kembali ke asal (${sizeOrig ?: "bawaan"}) ✓" else "Terbaca balik override=$back",
+            )
+        }
         if (results.isNotEmpty() && results.all { it.success }) {
             OptStore.setPreset(context, "Belum ada (sudah dipulihkan)")
         }
         OptStore.addLog(context, "Pulihkan Semua: ${results.count { it.success }}/${results.size} kunci kembali ke asal")
         results
+    }
+
+    // ================= v0.3 — Jaringan & Tampilan =================
+
+    data class NetDisplayState(
+        val dnsMode: String?,
+        val dnsHost: String?,
+        val restrictBackground: Boolean?,
+        val wifiScanAlways: Boolean?,
+        val fontScale: String?,
+        val peakHz: String?,
+        val minHz: String?,
+        val densityPhysical: String?,
+        val densityOverride: String?,
+        val sizePhysical: String?,
+        val sizeOverride: String?,
+    )
+
+    suspend fun readNetDisplayState(): NetDisplayState = withContext(Dispatchers.IO) {
+        val (dp, do_) = readWmDensity()
+        val (sp, so) = readWmSize()
+        NetDisplayState(
+            dnsMode = readSettingRaw("global", "private_dns_mode"),
+            dnsHost = readSettingRaw("global", "private_dns_specifier"),
+            restrictBackground = readRestrictBackground(),
+            wifiScanAlways = readSettingRaw("global", "wifi_scan_always_enabled")?.let { it == "1" },
+            fontScale = readSettingRaw("system", "font_scale"),
+            peakHz = readSettingRaw("system", "peak_refresh_rate"),
+            minHz = readSettingRaw("system", "min_refresh_rate"),
+            densityPhysical = dp,
+            densityOverride = do_,
+            sizePhysical = sp,
+            sizeOverride = so,
+        )
+    }
+
+    /** Baca status penghemat data global. Null = tidak terbaca di HP ini. */
+    fun readRestrictBackground(): Boolean? {
+        // Jalur 1: cmd netpolicy get (tersedia di sebagian build)
+        shell("cmd netpolicy get restrict-background")?.takeIf { it.ok }?.output?.let { out ->
+            val low = out.lowercase()
+            if ("enabled" in low || low.trim() == "true") return true
+            if ("disabled" in low || low.trim() == "false") return false
+        }
+        // Jalur 2: dumpsys netpolicy — cari baris restrict background
+        val dump = shell("dumpsys netpolicy")?.takeIf { it.ok }?.output ?: return null
+        for (line in dump.lines()) {
+            val low = line.lowercase()
+            if ("restrict" in low && "background" in low) {
+                if ("true" in low || "enabled" in low) return true
+                if ("false" in low || "disabled" in low) return false
+            }
+        }
+        return null
+    }
+
+    suspend fun setPrivateDnsMode(context: Context, mode: String, label: String): TweakResult =
+        withContext(Dispatchers.IO) {
+            writeSettingVerified(context, DNS_MODE_KEY, mode, "DNS Pribadi mode $label")
+        }
+
+    suspend fun setPrivateDnsHost(context: Context, host: String): List<TweakResult> =
+        withContext(Dispatchers.IO) {
+            val clean = host.trim().removePrefix("https://").trimEnd('/')
+            listOf(
+                writeSettingVerified(context, DNS_HOST_KEY, clean, "DNS Pribadi host"),
+                writeSettingVerified(context, DNS_MODE_KEY, "hostname", "DNS Pribadi mode Hostname"),
+            )
+        }
+
+    suspend fun setWifiScanAlways(context: Context, on: Boolean): TweakResult =
+        withContext(Dispatchers.IO) {
+            writeSettingVerified(
+                context, WIFI_SCAN_KEY, if (on) "1" else "0",
+                "Scan WiFi selalu aktif ${if (on) "ON" else "OFF"}",
+            )
+        }
+
+    suspend fun setRestrictBackground(context: Context, on: Boolean): TweakResult =
+        withContext(Dispatchers.IO) {
+            val before = readRestrictBackground()
+            if (before != null) OptStore.snapshotOnce(context, SNAP_NETPOLICY, before.toString())
+            val r = shell("cmd netpolicy set restrict-background $on")
+            if (r == null) return@withContext TweakResult("Penghemat data", false, "Shizuku belum siap")
+            val back = readRestrictBackground()
+            when {
+                back == on -> {
+                    OptStore.addLog(context, "Penghemat data → ${if (on) "ON" else "OFF"} ✓ terbaca balik")
+                    TweakResult("Penghemat data", true, "Diterapkan ✓ (terbaca balik)")
+                }
+                back == null && r.ok -> {
+                    OptStore.addLog(context, "Penghemat data → ${if (on) "ON" else "OFF"} terkirim (baca-balik tidak tersedia di HP ini)")
+                    TweakResult("Penghemat data", true, "Perintah terkirim ✓ — tapi HP ini tidak menyediakan baca-balik statusnya, cek di Pengaturan > Jaringan bila ragu")
+                }
+                else -> {
+                    OptStore.addLog(context, "Penghemat data → ${if (on) "ON" else "OFF"} DITOLAK (terbaca balik $back)")
+                    TweakResult("Penghemat data", false, "Terbaca balik tidak cocok: $back")
+                }
+            }
+        }
+
+    suspend fun setFontScale(context: Context, scale: String): TweakResult =
+        withContext(Dispatchers.IO) {
+            writeSettingVerified(context, FONT_SCALE_KEY, scale, "Skala font $scale")
+        }
+
+    /** Refresh rate EKSPERIMENTAL: tulis peak saja; kejujuran lewat read-back. */
+    suspend fun setPeakRefreshRate(context: Context, hz: String): TweakResult =
+        withContext(Dispatchers.IO) {
+            writeSettingVerified(context, PEAK_HZ_KEY, hz, "Refresh rate puncak ${hz}Hz")
+        }
+
+    suspend fun clearPeakRefreshRate(context: Context): TweakResult = withContext(Dispatchers.IO) {
+        snapshotKey(context, PEAK_HZ_KEY)
+        shell("settings delete system peak_refresh_rate")
+        val back = readSettingRaw("system", "peak_refresh_rate")
+        val ok = back == null
+        OptStore.addLog(context, "Refresh rate puncak dilepas ${if (ok) "✓" else "(masih terbaca $back)"}")
+        TweakResult("Refresh rate puncak", ok, if (ok) "Dilepas — kembali ke bawaan HP ✓" else "Masih terbaca: $back")
+    }
+
+    /** Paksa refresh tetap: min = peak. Matikan = hapus kunci min. */
+    suspend fun setForceConstantRefresh(context: Context, on: Boolean): TweakResult =
+        withContext(Dispatchers.IO) {
+            snapshotKey(context, MIN_HZ_KEY)
+            if (!on) {
+                shell("settings delete system min_refresh_rate")
+                val back = readSettingRaw("system", "min_refresh_rate")
+                val ok = back == null
+                OptStore.addLog(context, "Paksa refresh tetap OFF ${if (ok) "✓" else "(min masih $back)"}")
+                return@withContext TweakResult("Paksa refresh tetap", ok, if (ok) "Dimatikan ✓" else "Min masih terbaca: $back")
+            }
+            val peak = readSettingRaw("system", "peak_refresh_rate")
+                ?: return@withContext TweakResult(
+                    "Paksa refresh tetap", false,
+                    "Atur dulu refresh rate puncak di atas — nilai min diambil darinya",
+                )
+            writeSettingVerified(context, MIN_HZ_KEY, peak, "Refresh rate minimum $peak Hz")
+        }
+
+    // ---------- wm density / size ----------
+
+    /** (physical, override) dari `wm density`. */
+    fun readWmDensity(): Pair<String?, String?> {
+        val out = shell("wm density")?.takeIf { it.ok }?.output ?: return null to null
+        var physical: String? = null
+        var override: String? = null
+        for (line in out.lines()) {
+            val t = line.trim()
+            if (t.startsWith("Physical density:")) physical = t.removePrefix("Physical density:").trim()
+            if (t.startsWith("Override density:")) override = t.removePrefix("Override density:").trim()
+        }
+        return physical to override
+    }
+
+    /** (physical, override) dari `wm size`, format "1080x2400". */
+    fun readWmSize(): Pair<String?, String?> {
+        val out = shell("wm size")?.takeIf { it.ok }?.output ?: return null to null
+        var physical: String? = null
+        var override: String? = null
+        for (line in out.lines()) {
+            val t = line.trim()
+            if (t.startsWith("Physical size:")) physical = t.removePrefix("Physical size:").trim()
+            if (t.startsWith("Override size:")) override = t.removePrefix("Override size:").trim()
+        }
+        return physical to override
+    }
+
+    private fun snapshotWmDensity(context: Context) {
+        OptStore.snapshotOnce(context, SNAP_WM_DENSITY, readWmDensity().second)
+    }
+
+    private fun snapshotWmSize(context: Context) {
+        OptStore.snapshotOnce(context, SNAP_WM_SIZE, readWmSize().second)
+    }
+
+    suspend fun setWmDensity(context: Context, dpi: Int): TweakResult = withContext(Dispatchers.IO) {
+        snapshotWmDensity(context)
+        val r = shell("wm density $dpi")
+            ?: return@withContext TweakResult("Kepadatan layar", false, "Shizuku belum siap")
+        val back = readWmDensity().second
+        val ok = r.ok && back == dpi.toString()
+        OptStore.addLog(context, "Kepadatan layar → $dpi ${if (ok) "✓" else "DITOLAK (override=$back)"}")
+        TweakResult("Kepadatan layar", ok, if (ok) "Diterapkan ✓ (override $dpi dpi)" else "Terbaca balik override=${back ?: "tidak ada"}")
+    }
+
+    suspend fun resetWmDensity(context: Context): TweakResult = withContext(Dispatchers.IO) {
+        snapshotWmDensity(context)
+        val r = shell("wm density reset")
+            ?: return@withContext TweakResult("Kepadatan layar", false, "Shizuku belum siap")
+        val back = readWmDensity().second
+        val ok = r.ok && back == null
+        OptStore.addLog(context, "Kepadatan layar direset ${if (ok) "✓" else "(override masih $back)"}")
+        TweakResult("Kepadatan layar", ok, if (ok) "Kembali ke bawaan ✓" else "Override masih terbaca: $back")
+    }
+
+    suspend fun setWmSizePercent(context: Context, percent: Int): TweakResult = withContext(Dispatchers.IO) {
+        snapshotWmSize(context)
+        val (physical, _) = readWmSize()
+        val parts = physical?.split("x")?.map { it.trim().toIntOrNull() }
+        if (parts == null || parts.size != 2 || parts.any { it == null }) {
+            return@withContext TweakResult("Ukuran layar", false, "Ukuran fisik layar tidak terbaca di HP ini")
+        }
+        val w = parts[0]!! * percent / 100
+        val h = parts[1]!! * percent / 100
+        val target = "${w}x${h}"
+        val r = shell("wm size $target")
+            ?: return@withContext TweakResult("Ukuran layar", false, "Shizuku belum siap")
+        val back = readWmSize().second
+        val ok = r.ok && back == target
+        OptStore.addLog(context, "Ukuran layar → $target ($percent%) ${if (ok) "✓" else "DITOLAK (override=$back)"}")
+        TweakResult("Ukuran layar", ok, if (ok) "Diterapkan ✓ ($target)" else "Terbaca balik override=${back ?: "tidak ada"}")
+    }
+
+    suspend fun resetWmSize(context: Context): TweakResult = withContext(Dispatchers.IO) {
+        snapshotWmSize(context)
+        val r = shell("wm size reset")
+            ?: return@withContext TweakResult("Ukuran layar", false, "Shizuku belum siap")
+        val back = readWmSize().second
+        val ok = r.ok && back == null
+        OptStore.addLog(context, "Ukuran layar direset ${if (ok) "✓" else "(override masih $back)"}")
+        TweakResult("Ukuran layar", ok, if (ok) "Kembali ke bawaan ✓" else "Override masih terbaca: $back")
     }
 }

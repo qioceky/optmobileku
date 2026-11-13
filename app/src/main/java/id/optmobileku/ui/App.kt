@@ -202,6 +202,7 @@ fun OptMobilekuApp() {
                             doAction("Pangkas cache") { listOf(Optimizer.trimCaches(context)) }
                         },
                         onDexopt = { showDexoptConfirm = true },
+                        onAfterAction = { reloadLocal() },
                     )
                     2 -> AppsTab(
                         ready = shizukuState == ShizukuCtl.State.READY,
@@ -450,6 +451,7 @@ private fun OptimasiTab(
     onAdaptive: (Boolean) -> Unit,
     onTrim: () -> Unit,
     onDexopt: () -> Unit,
+    onAfterAction: () -> Unit,
 ) {
     if (!ready) {
         NeoCard(fill = Color(0xFFFFF3C4)) {
@@ -530,7 +532,8 @@ private fun OptimasiTab(
         on = current?.adaptiveBatteryOn,
         enabled = ready && busy == null,
     ) { onAdaptive(it) }
-    Spacer(Modifier.height(12.dp))
+
+    NetDisplaySection(ready = ready, onAfterAction = onAfterAction)
 
     ResultsCard(busy = busy, results = results)
 }
@@ -641,7 +644,7 @@ private fun InfoTab() {
         Text(
             "v0.1: fondasi Shizuku + preset + animasi/baterai/ART/cache + snapshot & pulihkan.\n" +
                 "v0.2 (ini): manajemen aplikasi & bloatware — tab Aplikasi (bucket standby, Doze, background, suspend, nonaktifkan/copot reversibel + daftar lindung).\n" +
-                "v0.3: tampilan & jaringan (DNS pribadi, penghemat data, font, refresh rate eksperimental).\n" +
+                "v0.3 (ini): tampilan & jaringan — seksi Jaringan & Tampilan di tab Optimasi (DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset).\n" +
                 "v0.4: profil per aplikasi (Mode Game / Mode Tidur).",
             fontSize = 13.sp
         )
