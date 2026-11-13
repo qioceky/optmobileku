@@ -222,7 +222,7 @@ object AppManager {
     suspend fun setEnabled(context: Context, pkg: String, enable: Boolean): TweakResult =
         withContext(Dispatchers.IO) {
             val name = if (enable) "Aktifkan $pkg" else "Nonaktifkan $pkg"
-            val r = if (enable) shell("pm enable --user 0 $pkg") else shell("pm disable-user --user 0 $pkg")
+            val r = (if (enable) shell("pm enable --user 0 $pkg") else shell("pm disable-user --user 0 $pkg"))
                 ?: return@withContext result(context, name, false, "Shizuku belum siap")
             val nowEnabled = runCatching {
                 context.packageManager.getApplicationEnabledSetting(pkg)
