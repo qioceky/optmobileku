@@ -41,5 +41,37 @@
             android:multiprocess="false"
             android:enabled="true" />
 
+        <!-- FileProvider (v0.5): membagikan file ekspor log dari cache.
+             Tidak exported; akses per-URI lewat grant. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Tile Quick Settings (v0.5): memutar preset Hemat → Seimbang →
+             Performa. BIND_QUICK_SETTINGS_TILE adalah izin sistem khusus
+             tile; bukan izin yang diminta ke user. -->
+        <service
+            android:name=".tile.PresetTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Preset Opt Mobileku"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="true" />
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
+        </service>
+
     </application>
 </manifest>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Jalur yang boleh dibagikan FileProvider (v0.5): hanya folder ekspor
+     di cache aplikasi (file log hasil ekspor). -->
+<paths>
+    <cache-path name="exports" path="exports/" />
+</paths>

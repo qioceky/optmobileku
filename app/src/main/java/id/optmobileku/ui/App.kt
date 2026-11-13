@@ -10,6 +10,14 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import id.optmobileku.tile.PresetTileService
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -123,6 +131,8 @@ fun OptMobilekuApp() {
                 busy = null
                 if (ShizukuCtl.isReady()) current = Optimizer.readCurrentState()
                 reloadLocal()
+                // Segarkan tile Quick Settings (subtitle preset) sesudah aksi.
+                PresetTileService.requestRefresh(context)
             }
         }
 
@@ -600,6 +610,53 @@ private fun LogTab(
     hasCrash: Boolean,
 ) {
     val anyLog = logLines.isNotEmpty() || execLines.isNotEmpty()
+    val context = LocalContext.current
+
+    // ---- Ekspor log ke file (v0.5) ----
+    var pendingExport by remember { mutableStateOf<String?>(null) }
+    val saveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        val text = pendingExport
+        pendingExport = null
+        if (uri != null && text != null) {
+            runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+            }
+        }
+    }
+    fun exportFileName(): String =
+        "optmobileku-log-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date()) + ".txt"
+    fun shareLogFile() {
+        runCatching {
+            val dir = File(context.cacheDir, "exports").apply { mkdirs() }
+            val f = File(dir, exportFileName())
+            f.writeText(OptStore.buildExportText(context))
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", f)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, f.name)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(intent, "Bagikan log"))
+        }
+    }
+
+    // ---- Ringkasan hitungan (v0.5) ----
+    val okCount = logLines.count { it.contains("✓") }
+    val failCount = logLines.count { it.contains("GAGAL") }
+    Text("RINGKASAN", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
+    Spacer(Modifier.height(7.dp))
+    NeoCard {
+        Text(
+            "✓ Perubahan berhasil tercatat: $okCount\n" +
+                "✗ Gagal: $failCount\n" +
+                "Total: ${logLines.size} baris log perubahan • ${execLines.size} baris log eksekusi",
+            fontSize = 13.sp
+        )
+    }
+    Spacer(Modifier.height(14.dp))
     Text("LOG PERUBAHAN", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
     Spacer(Modifier.height(7.dp))
     if (logLines.isEmpty()) {
@@ -642,6 +699,13 @@ private fun LogTab(
         }
     }
     Spacer(Modifier.height(11.dp))
+    NeoButton("💾 Ekspor Log — Simpan sebagai File", fill = OptYellow, enabled = anyLog) {
+        pendingExport = OptStore.buildExportText(context)
+        saveLauncher.launch(exportFileName())
+    }
+    Spacer(Modifier.height(9.dp))
+    NeoButton("📤 Ekspor Log — Bagikan File", fill = Color.White, enabled = anyLog) { shareLogFile() }
+    Spacer(Modifier.height(9.dp))
     NeoButton("📋 Salin Log (Perubahan + Eksekusi)", fill = Color.White, enabled = anyLog) { onCopyLog() }
     Spacer(Modifier.height(9.dp))
     NeoButton("🗑️ Hapus Log", fill = Color.White, enabled = anyLog) { onClearLog() }
@@ -656,6 +720,18 @@ private fun LogTab(
 @Composable
 private fun InfoTab() {
     val context = LocalContext.current
+    Text("TILE QUICK SETTINGS (v0.5)", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
+    Spacer(Modifier.height(7.dp))
+    NeoCard {
+        Text(
+            "Ganti preset tanpa membuka aplikasi: tarik panel notifikasi dua kali → " +
+                "ikon pensil (edit) → cari tile \"Preset Opt Mobileku\" → tambahkan. " +
+                "Ketuk tile untuk memutar Hemat → Seimbang → Performa. " +
+                "Tile hanya bekerja bila Shizuku sedang jalan; bila belum, ketukan membuka aplikasi ini.",
+            fontSize = 13.sp
+        )
+    }
+    Spacer(Modifier.height(11.dp))
     Text("EKSPOR SNAPSHOT (v0.4)", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
     Spacer(Modifier.height(7.dp))
     NeoCard {
@@ -705,7 +781,8 @@ private fun InfoTab() {
                 "v0.3.2: Log Eksekusi rinci — setiap perintah shell tercatat dengan kode exit, durasi, dan output mentahnya di tab Log (Salin Log kini menggabungkan Log Perubahan + Log Eksekusi).\n" +
                 "v0.3.1: perbaikan refresh rate untuk HP Transsion (Infinix/Tecno) — menulis jalur generik + kunci vendor tran_*, tombol 144Hz, dan Diagnosis Refresh Rate ke tab Log.\n" +
                 "v0.3: tampilan & jaringan — DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset.\n" +
-                "v0.4 (ini): profil per aplikasi — 🎮 Mode Game / 😴 Mode Tidur di tab Aplikasi (bucket + Doze + background sekaligus, snapshot asal, Lepas Profil, Terapkan Ulang Semua) + ekspor snapshot JSON di tab Info.",
+                "v0.4: profil per aplikasi — 🎮 Mode Game / 😴 Mode Tidur di tab Aplikasi (bucket + Doze + background sekaligus, snapshot asal, Lepas Profil, Terapkan Ulang Semua) + ekspor snapshot JSON di tab Info.\n" +
+                "v0.5 (ini): Ekspor Log ke file (simpan/bagikan, dengan header info HP) + ringkasan hitungan sukses/gagal di tab Log + Tile Quick Settings untuk memutar preset.",
             fontSize = 13.sp
         )
     }

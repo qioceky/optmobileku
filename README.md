@@ -34,6 +34,30 @@ Eksekusi dalam satu teks. Implementasi: hook `execLogger` di
 `ShizukuCtl.execBlocking` (satu-satunya gerbang eksekusi) → file
 `exec_log.txt` terpisah via `OptStore`.
 
+## Fitur v0.5.0 — Ekspor log, ringkasan, tile Quick Settings
+
+Dipilih user dari daftar usulan (opsi 2 + 3; ekspor/impor data tidak
+diambil kali ini):
+
+- **Ekspor Log ke file**: tombol Simpan (pemilih file sistem) dan
+  Bagikan (lembar berbagi Android) di tab Log. Isi file: header info
+  HP (model, versi Android, versi aplikasi, preset aktif) + Log
+  Perubahan + Log Eksekusi lengkap — menggantikan pola tempel-ke-chat
+  yang rawan terpotong. Berbagi berjalan lewat FileProvider terbatas
+  folder cache ekspor.
+- **Ringkasan log**: kartu hitungan di tab Log — perubahan berhasil
+  (✓) vs gagal (GAGAL) dan total baris kedua log.
+- **Tile Quick Settings**: tile "Preset Opt Mobileku" untuk panel
+  notifikasi — ketuk untuk memutar Hemat → Seimbang → Performa tanpa
+  membuka aplikasi. Syarat jujur: Shizuku harus sedang jalan & izin
+  ada; bila belum siap, ketukan membuka aplikasi utama dan subtitle
+  tile menyatakan "Shizuku belum siap". Subtitle selalu menampilkan
+  preset yang benar-benar tersimpan (hanya berubah bila penerapan
+  sukses penuh).
+
+Izin aplikasi TIDAK berubah (tile memakai izin sistem
+BIND_QUICK_SETTINGS_TILE khusus service QS, bukan izin runtime).
+
 ## Fitur v0.4.0 — Profil per aplikasi
 
 Di tab Aplikasi, setiap aplikasi (selain daftar lindung) kini bisa

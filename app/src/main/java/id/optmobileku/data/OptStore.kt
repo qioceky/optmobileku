@@ -1,6 +1,8 @@
 package id.optmobileku.data
 
 import android.content.Context
+import android.os.Build
+import id.optmobileku.BuildConfig
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
@@ -198,6 +200,30 @@ object OptStore {
         fun intOrNull(k: String): Int? = if (e.isNull(k)) null else e.optInt(k)
         fun boolOrNull(k: String): Boolean? = if (e.isNull(k)) null else e.optBoolean(k)
         return Triple(intOrNull("bucket"), boolOrNull("doze"), boolOrNull("bg"))
+    }
+
+    /**
+     * Teks ekspor log lengkap (v0.5): header info perangkat + Log
+     * Perubahan + Log Eksekusi, dalam satu dokumen teks. Inilah isi file
+     * yang disimpan/dibagikan tombol Ekspor Log di tab Log — format file
+     * dipilih karena log yang ditempel ke chat rawan terpotong.
+     */
+    fun buildExportText(context: Context): String {
+        val stamp = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US).format(Date())
+        return buildString {
+            appendLine("Opt Mobileku — Ekspor Log")
+            appendLine("Diekspor: $stamp")
+            appendLine("Aplikasi: v${BuildConfig.VERSION_NAME} (code ${BuildConfig.VERSION_CODE})")
+            appendLine("Perangkat: ${Build.MANUFACTURER} ${Build.MODEL}")
+            appendLine("Android: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
+            appendLine("Preset aktif: ${getPreset(context)}")
+            appendLine()
+            appendLine("=== LOG PERUBAHAN ===")
+            appendLine(readLog(context).joinToString("\n"))
+            appendLine()
+            appendLine("=== LOG EKSEKUSI (perintah + exit + output) ===")
+            appendLine(readExecLog(context).joinToString("\n"))
+        }
     }
 
     /** Isi snapshot.json utama dalam bentuk rapi, untuk diekspor user. */
