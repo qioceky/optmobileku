@@ -1,6 +1,15 @@
 # RANCANGAN — Opt Mobileku (settingan optimasi Android via Shizuku)
 
-Tanggal: 2026-11-13. Status: **v0.5.0 RILIS 2026-11-14** atas pilihan
+Tanggal: 2026-11-13. Status: **v0.6.0 RILIS 2026-11-14** atas
+permintaan user ("cari fitur tersembunyi", keduanya dipilih) — tab
+Rahasia: `HiddenScanner` pindai kunci system/secure/global berpola
+menarik (ubah aman: snapshot generik `hidden:<ns>:<key>` + baca-balik;
+`restoreAll` diperluas memulihkan entri hidden:) + menu tersembunyi
+(kode rahasia SECRET_CODE 4636/8255/7594 via broadcast shell +
+aktivitas exported berpola rahasia via PackageManager GET_ACTIVITIES).
+CI `43528871439` HIJAU sekali jalan, APK 6.669.728 byte, SHA-256
+`b26e8540…4213`, signer SAMA (menimpa v0.5.0), izin tidak berubah.
+Menunggu uji lapangan tab Rahasia user. **v0.5.0 RILIS 2026-11-14** atas pilihan
 user ("Ekspor log dan 2,3") — Ekspor Log ke file (Simpan SAF + Bagikan
 FileProvider, header info HP), ringkasan hitungan ✓/GAGAL di tab Log,
 Tile Quick Settings pemutar preset (PresetTileService; jujur: butuh
