@@ -88,10 +88,8 @@ fun AppsTab(
         selected?.let { loadDetail(it.pkg) }
     }
 
-    fun doAction(name: String, block: suspend () -> Optimizer.TweakResult) {
-        doActionList(name) { listOf(block()) }
-    }
-
+    // Catatan: fungsi lokal Kotlin hanya terlihat SETELAH deklarasinya,
+    // jadi doActionList (yang dipakai doAction) wajib ditulis lebih dulu.
     fun doActionList(name: String, block: suspend () -> List<Optimizer.TweakResult>) {
         if (busy != null) return
         busy = name
@@ -113,6 +111,10 @@ fun AppsTab(
                 }
             } ?: onAfterAction()
         }
+    }
+
+    fun doAction(name: String, block: suspend () -> Optimizer.TweakResult) {
+        doActionList(name) { listOf(block()) }
     }
 
     val sel = selected
