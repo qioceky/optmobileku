@@ -8,7 +8,24 @@ Dibangun lengkap secara bertahap: v0.1 fondasi + preset, menuju manajemen
 aplikasi/bloatware (v0.2), tampilan & jaringan (v0.3), dan profil per
 aplikasi (v0.4). Rancangan lengkap ada di [`RANCANGAN.md`](RANCANGAN.md).
 
-## Fitur v0.3.0 — Tampilan & jaringan (baru)
+## Perbaikan v0.3.1 — Refresh rate jalur Transsion
+
+Uji lapangan v0.3.0 di Infinix: refresh rate ditolak & tetap lock 60Hz
+meski panel support s.d. 144Hz. Penyebabnya: XOS memakai kunci vendor
+Transsion sebagai master, bukan `peak_refresh_rate` generik. v0.3.1:
+
+- Tombol refresh rate kini menulis **dua jalur**: generik
+  (`peak_refresh_rate` format desimal) + vendor (`tran_refresh_mode`,
+  `last_tran_refresh_mode_in_refresh_setting`,
+  `tran_transform_refresh_mode_in_refresh_setting`,
+  `tran_need_recovery_refresh_mode`) — tiap kunci dibaca-balik dan
+  dilaporkan satu per satu; semua ikut snapshot & Pulihkan Semua.
+- Tombol **144Hz**; kartu refresh menampilkan mode XOS saat ini.
+- Tombol **Diagnosis ke Log**: membuang semua kunci settings yang
+  mengandung "refresh"/"tran_" (system/secure/global) + ringkasan
+  `dumpsys display` ke tab Log untuk bahan diagnosis.
+
+## Fitur v0.3.0 — Tampilan & jaringan
 
 Di tab Optimasi, dua seksi baru — semua ikut **snapshot & Pulihkan Semua**:
 

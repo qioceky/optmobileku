@@ -157,20 +157,27 @@ fun NetDisplaySection(
     NeoCard(fill = Color(0xFFFFF3C4)) {
         Text("Refresh Rate — EKSPERIMENTAL ⚠️", fontWeight = FontWeight.Black, fontSize = 15.sp)
         Text(
-            "Kunci ini beda-beda tiap HP/OEM dan bisa diabaikan diam-diam. Hasilnya selalu dibaca-balik: " +
-                "bila tertulis ditolak, berarti HP kamu tidak mendukung jalur ini.\n" +
-                "Saat ini: puncak ${s?.peakHz ?: "bawaan"} • minimum ${s?.minHz ?: "bawaan"}",
+            "v0.3.1: menulis DUA jalur sekaligus — generik Android (peak_refresh_rate) dan jalur " +
+                "vendor Transsion/XOS (tran_refresh_mode dkk). Hasil tiap kunci dibaca-balik satu-satu di bawah.\n" +
+                "Saat ini: puncak ${s?.peakHz ?: "bawaan"} • minimum ${s?.minHz ?: "bawaan"} • " +
+                "mode XOS ${s?.tranRefreshMode ?: "tidak terbaca"}",
             color = Muted, fontSize = 12.5.sp, modifier = Modifier.padding(top = 3.dp)
         )
         Spacer(Modifier.height(9.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            listOf("60", "90", "120").forEach { hz ->
+            listOf("60", "90", "120", "144").forEach { hz ->
                 SegButton("${hz}Hz", s?.peakHz?.toFloatOrNull() == hz.toFloatOrNull(), enabled, Modifier.weight(1f)) {
-                    doAction("Refresh rate $hz") { listOf(Optimizer.setPeakRefreshRate(context, hz)) }
+                    doAction("Refresh rate $hz") { Optimizer.setPeakRefreshRate(context, hz) }
                 }
             }
-            SegButton("Lepas", s?.peakHz == null, enabled, Modifier.weight(1f)) {
-                doAction("Refresh rate lepas") { listOf(Optimizer.clearPeakRefreshRate(context)) }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            NeoButton("Lepas Semua", fill = Color.White, enabled = enabled, modifier = Modifier.weight(1f)) {
+                doAction("Refresh rate lepas") { Optimizer.clearPeakRefreshRate(context) }
+            }
+            NeoButton("Diagnosis ke Log", fill = Color.White, enabled = enabled, modifier = Modifier.weight(1f)) {
+                doAction("Diagnosis refresh") { listOf(Optimizer.diagnoseRefreshRate(context)) }
             }
         }
         Spacer(Modifier.height(8.dp))

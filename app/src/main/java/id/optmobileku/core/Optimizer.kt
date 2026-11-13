@@ -48,8 +48,19 @@ object Optimizer {
     private val PEAK_HZ_KEY = TrackedKey("system", "peak_refresh_rate")
     private val MIN_HZ_KEY = TrackedKey("system", "min_refresh_rate")
 
+    // v0.3.1 — kunci vendor Transsion (Infinix/Tecno/itel, XOS/HiOS).
+    // Di HP Transsion, layanan refresh bawaan memakai kunci tran_* ini
+    // sebagai master; peak_refresh_rate generik ditimpa/dibuang (uji
+    // lapangan v0.3.0 di Infinix user: ditolak, tetap lock 60Hz).
+    private val TRAN_MODE_KEY = TrackedKey("system", "tran_refresh_mode")
+    private val TRAN_LAST_KEY = TrackedKey("system", "last_tran_refresh_mode_in_refresh_setting")
+    private val TRAN_TRANSFORM_KEY = TrackedKey("system", "tran_transform_refresh_mode_in_refresh_setting")
+    private val TRAN_RECOVERY_KEY = TrackedKey("system", "tran_need_recovery_refresh_mode")
+    private val TRAN_KEYS = listOf(TRAN_MODE_KEY, TRAN_LAST_KEY, TRAN_TRANSFORM_KEY, TRAN_RECOVERY_KEY)
+
     private val ALL_TRACKED = ANIM_KEYS + ADAPTIVE_KEY + LOW_POWER_KEY +
-        listOf(DNS_MODE_KEY, DNS_HOST_KEY, WIFI_SCAN_KEY, FONT_SCALE_KEY, PEAK_HZ_KEY, MIN_HZ_KEY)
+        listOf(DNS_MODE_KEY, DNS_HOST_KEY, WIFI_SCAN_KEY, FONT_SCALE_KEY, PEAK_HZ_KEY, MIN_HZ_KEY) +
+        TRAN_KEYS
 
     // Snapshot non-settings (bukan kunci settings): status netpolicy & wm.
     const val SNAP_NETPOLICY = "special/netpolicy_restrict"
@@ -331,6 +342,7 @@ object Optimizer {
         val fontScale: String?,
         val peakHz: String?,
         val minHz: String?,
+        val tranRefreshMode: String?,
         val densityPhysical: String?,
         val densityOverride: String?,
         val sizePhysical: String?,
@@ -348,6 +360,7 @@ object Optimizer {
             fontScale = readSettingRaw("system", "font_scale"),
             peakHz = readSettingRaw("system", "peak_refresh_rate"),
             minHz = readSettingRaw("system", "min_refresh_rate"),
+            tranRefreshMode = readSettingRaw("system", "tran_refresh_mode"),
             densityPhysical = dp,
             densityOverride = do_,
             sizePhysical = sp,
@@ -425,19 +438,65 @@ object Optimizer {
             writeSettingVerified(context, FONT_SCALE_KEY, scale, "Skala font $scale")
         }
 
-    /** Refresh rate EKSPERIMENTAL: tulis peak saja; kejujuran lewat read-back. */
-    suspend fun setPeakRefreshRate(context: Context, hz: String): TweakResult =
+    /**
+     * Refresh rate EKSPERIMENTAL (v0.3.1): tulis jalur generik AOSP
+     * (peak format desimal, mis. "120.0") DAN jalur vendor Transsion
+     * (kunci tran_* bernilai Hz bulat). Hasil per kunci dilaporkan apa
+     * adanya lewat read-back — kunci yang tidak ada/diabaikan ROM akan
+     * terlihat ditolak, dan itu bahan diagnosis, bukan kegagalan diam.
+     */
+    suspend fun setPeakRefreshRate(context: Context, hz: String): List<TweakResult> =
         withContext(Dispatchers.IO) {
-            writeSettingVerified(context, PEAK_HZ_KEY, hz, "Refresh rate puncak ${hz}Hz")
+            val results = mutableListOf<TweakResult>()
+            results += writeSettingVerified(context, PEAK_HZ_KEY, "$hz.0", "Refresh rate puncak (generik) ${hz}Hz")
+            for (key in TRAN_KEYS) {
+                results += writeSettingVerified(context, key, hz, "Refresh rate XOS ${key.key}")
+            }
+            results
         }
 
-    suspend fun clearPeakRefreshRate(context: Context): TweakResult = withContext(Dispatchers.IO) {
-        snapshotKey(context, PEAK_HZ_KEY)
-        shell("settings delete system peak_refresh_rate")
-        val back = readSettingRaw("system", "peak_refresh_rate")
-        val ok = back == null
-        OptStore.addLog(context, "Refresh rate puncak dilepas ${if (ok) "✓" else "(masih terbaca $back)"}")
-        TweakResult("Refresh rate puncak", ok, if (ok) "Dilepas — kembali ke bawaan HP ✓" else "Masih terbaca: $back")
+    /** Lepas semua kunci refresh (generik + Transsion) kembali ke bawaan. */
+    suspend fun clearPeakRefreshRate(context: Context): List<TweakResult> = withContext(Dispatchers.IO) {
+        val results = mutableListOf<TweakResult>()
+        for (key in listOf(PEAK_HZ_KEY) + TRAN_KEYS) {
+            snapshotKey(context, key)
+            shell("settings delete ${key.namespace} ${key.key}")
+            val back = readSettingRaw(key.namespace, key.key)
+            val ok = back == null
+            OptStore.addLog(context, "Lepas ${key.key} ${if (ok) "✓" else "(masih terbaca $back)"}")
+            results += TweakResult(
+                "Lepas ${key.key}", ok,
+                if (ok) "Terhapus — kembali bawaan ✓" else "Masih terbaca: $back",
+            )
+        }
+        results
+    }
+
+    /**
+     * Diagnosis refresh rate: tulis semua kunci settings yang mengandung
+     * "refresh"/"tran_" dari ketiga namespace + ringkasan mode display
+     * aktif ke Log aplikasi, supaya bisa disalin user sebagai bahan bukti.
+     */
+    suspend fun diagnoseRefreshRate(context: Context): TweakResult = withContext(Dispatchers.IO) {
+        val sb = StringBuilder("=== Diagnosis refresh rate ===")
+        for (ns in listOf("system", "secure", "global")) {
+            val out = shell("settings list $ns")?.takeIf { it.ok }?.output.orEmpty()
+            val hits = out.lines().filter { line ->
+                val low = line.lowercase()
+                ("refresh" in low || "tran_" in low) && line.isNotBlank()
+            }.take(40)
+            sb.append("\n-- $ns (${hits.size} kunci) --")
+            if (hits.isEmpty()) sb.append("\n(tidak ada)")
+            hits.forEach { sb.append("\n$it") }
+        }
+        val disp = shell("dumpsys display | grep -i refresh | head -25")?.takeIf { it.ok }?.output.orEmpty()
+        sb.append("\n-- dumpsys display (baris refresh) --")
+        if (disp.isBlank()) sb.append("\n(tidak terbaca)") else sb.append("\n").append(disp.trim())
+        OptStore.addLog(context, sb.toString())
+        TweakResult(
+            "Diagnosis refresh rate", true,
+            "Ditulis ke tab Log ✓ — buka tab Log, Salin Log, kirim ke Qandy bila refresh masih ditolak",
+        )
     }
 
     /** Paksa refresh tetap: min = peak. Matikan = hapus kunci min. */

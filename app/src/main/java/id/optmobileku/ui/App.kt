@@ -644,7 +644,8 @@ private fun InfoTab() {
         Text(
             "v0.1: fondasi Shizuku + preset + animasi/baterai/ART/cache + snapshot & pulihkan.\n" +
                 "v0.2 (ini): manajemen aplikasi & bloatware — tab Aplikasi (bucket standby, Doze, background, suspend, nonaktifkan/copot reversibel + daftar lindung).\n" +
-                "v0.3 (ini): tampilan & jaringan — seksi Jaringan & Tampilan di tab Optimasi (DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset).\n" +
+                "v0.3.1 (ini): perbaikan refresh rate untuk HP Transsion (Infinix/Tecno) — menulis jalur generik + kunci vendor tran_*, tombol 144Hz, dan Diagnosis Refresh Rate ke tab Log.\n" +
+                "v0.3: tampilan & jaringan — DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset.\n" +
                 "v0.4: profil per aplikasi (Mode Game / Mode Tidur).",
             fontSize = 13.sp
         )
