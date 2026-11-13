@@ -128,10 +128,11 @@ fun OptMobilekuApp() {
                 .fillMaxSize()
                 .background(Paper)
         ) {
+            val scrollState = rememberScrollState()
             Column(
                 Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState())
+                    .then(if (tab != 2) Modifier.verticalScroll(scrollState) else Modifier)
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 // Header
@@ -165,7 +166,7 @@ fun OptMobilekuApp() {
                         onRefreshShizuku = { refreshShizuku() },
                         onRequestPermission = { ShizukuCtl.requestPermission() },
                         onInstallShizuku = { ShizukuCtl.openInStore(context) },
-                        onGoInfo = { tab = 3 },
+                        onGoInfo = { tab = 4 },
                         onPreset = { preset ->
                             doAction("Preset ${preset.label}") { Optimizer.applyPreset(context, preset) }
                         },
@@ -202,7 +203,11 @@ fun OptMobilekuApp() {
                         },
                         onDexopt = { showDexoptConfirm = true },
                     )
-                    2 -> LogTab(
+                    2 -> AppsTab(
+                        ready = shizukuState == ShizukuCtl.State.READY,
+                        onAfterAction = { reloadLocal() },
+                    )
+                    3 -> LogTab(
                         logLines = logLines,
                         onCopyLog = { copyToClipboard(context, "optmobileku-log", logLines.joinToString("\n")) },
                         onClearLog = {
@@ -226,7 +231,7 @@ fun OptMobilekuApp() {
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val tabs = listOf("Beranda", "Optimasi", "Log", "Info")
+                val tabs = listOf("Beranda", "Optimasi", "Aplikasi", "Log", "Info")
                 tabs.forEachIndexed { i, label ->
                     Box(
                         Modifier
@@ -238,7 +243,7 @@ fun OptMobilekuApp() {
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(label, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(label, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                     }
                 }
             }
@@ -634,8 +639,8 @@ private fun InfoTab() {
     Spacer(Modifier.height(7.dp))
     NeoCard {
         Text(
-            "v0.1 (ini): fondasi Shizuku + preset + animasi/baterai/ART/cache + snapshot & pulihkan.\n" +
-                "v0.2: manajemen aplikasi & bloatware (bucket standby, Doze, nonaktifkan/copot reversibel + daftar lindung).\n" +
+            "v0.1: fondasi Shizuku + preset + animasi/baterai/ART/cache + snapshot & pulihkan.\n" +
+                "v0.2 (ini): manajemen aplikasi & bloatware — tab Aplikasi (bucket standby, Doze, background, suspend, nonaktifkan/copot reversibel + daftar lindung).\n" +
                 "v0.3: tampilan & jaringan (DNS pribadi, penghemat data, font, refresh rate eksperimental).\n" +
                 "v0.4: profil per aplikasi (Mode Game / Mode Tidur).",
             fontSize = 13.sp

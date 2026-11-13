@@ -4,9 +4,10 @@
     <!-- Shizuku: akses shell/ADB tanpa root. -->
     <uses-permission android:name="rikka.shizuku.manager.permission.API_V23" />
 
-    <!-- v0.1 SENGAJA tanpa INTERNET dan tanpa QUERY_ALL_PACKAGES:
-         preset & optimasi dasar tidak membutuhkannya. QUERY_ALL_PACKAGES
-         baru ditambah di v0.2 saat daftar aplikasi dikelola. -->
+    <!-- v0.2: QUERY_ALL_PACKAGES adalah inti tab Aplikasi (mengelola
+         aplikasi lain) — dinyatakan jujur di README & tab Info.
+         Tetap TANPA izin INTERNET. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <queries>
         <!-- Untuk cek apakah aplikasi Shizuku terpasang. -->
         <package android:name="moe.shizuku.privileged.api" />

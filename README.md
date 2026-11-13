@@ -8,6 +8,24 @@ Dibangun lengkap secara bertahap: v0.1 fondasi + preset, menuju manajemen
 aplikasi/bloatware (v0.2), tampilan & jaringan (v0.3), dan profil per
 aplikasi (v0.4). Rancangan lengkap ada di [`RANCANGAN.md`](RANCANGAN.md).
 
+## Fitur v0.2.0 — Manajemen aplikasi & bloatware (baru)
+
+- **Tab Aplikasi**: daftar semua aplikasi (pengguna + sistem), cari nama /
+  package, filter Semua / Pengguna / Sistem / Nonaktif.
+- **Per aplikasi** (semua dibaca-balik & tercatat di log):
+  - Bucket standby: Aktif / Sering dipakai / Kadang / Jarang / Dibatasi
+  - Whitelist Doze: masukkan / cabut
+  - Background: batasi (AppOps ignore) / izinkan
+  - Paksa berhenti, Bekukan (suspend) / Cairkan
+  - Nonaktifkan / Aktifkan (konfirmasi dua langkah)
+  - **Copot untuk user ini saja** (`pm uninstall --user 0`, konfirmasi dua
+    langkah) + **Pulihkan** (`install-existing`) dari layar yang sama
+- **Daftar lindung**: aplikasi inti sistem + launcher/keyboard/dialer
+  bawaan (dideteksi dari perannya) + Shizuku + Opt Mobileku sendiri tidak
+  punya tombol destruktif sama sekali.
+- Izin baru v0.2: `QUERY_ALL_PACKAGES` — memang inti tab ini; dinyatakan
+  terbuka di sini. Tetap tanpa INTERNET.
+
 ## Fitur v0.1.0 — Fondasi + Preset
 
 - **Onboarding Shizuku 5 status**: belum terpasang / belum jalan / belum
@@ -40,9 +58,8 @@ menutup aplikasi berulang-ulang (itu justru memperlambat HP).
 
 ## Izin
 
-v0.1 hanya memakai izin API Shizuku (`rikka.shizuku.manager.permission.API_V23`).
-Tidak ada `INTERNET`, tidak ada `QUERY_ALL_PACKAGES` (yang terakhir baru
-dibutuhkan v0.2 untuk daftar aplikasi, dan akan dinyatakan saat itu).
+Izin API Shizuku (`rikka.shizuku.manager.permission.API_V23`) + sejak v0.2
+`QUERY_ALL_PACKAGES` (inti tab Aplikasi). Tidak ada `INTERNET`.
 
 ## Build
 
