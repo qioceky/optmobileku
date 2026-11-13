@@ -1,7 +1,10 @@
 # RANCANGAN — Opt Mobileku (settingan optimasi Android via Shizuku)
 
-Tanggal: 2026-11-13. Status: v0.2.0 dikerjakan 2026-11-13 atas perintah
-user ("Lanjutkan" — roadmap dikunci: v0.2 manajemen aplikasi).
+Tanggal: 2026-11-13. Status: **v0.2.0 RILIS 2026-11-13** atas perintah
+user ("Lanjutkan") — CI run `43450776481` hijau setelah 1x perbaikan
+kompilasi (Elvis di setEnabled), APK 6.587.016 byte, SHA-256 APK
+`308020a4…6fdf`, signer SAMA dengan v0.1.0 (menimpa, tanpa uninstall),
+izin kini +QUERY_ALL_PACKAGES. Menunggu uji lapangan tab Aplikasi.
 **v0.1.0 RILIS 2026-11-13** (repo PUBLIK
 `qioceky/optmobileku`, CI run `43448045885` HIJAU sekali jalan, APK
 6.537.828 byte, SHA-256 APK `8eb72bd1…1f9c`, signer SHA-256
