@@ -1,6 +1,13 @@
 # RANCANGAN — Opt Mobileku (settingan optimasi Android via Shizuku)
 
-Tanggal: 2026-11-13. Status: **v0.4.0 RILIS 2026-11-14** atas perintah
+Tanggal: 2026-11-13. Status: **v0.5.0 RILIS 2026-11-14** atas pilihan
+user ("Ekspor log dan 2,3") — Ekspor Log ke file (Simpan SAF + Bagikan
+FileProvider, header info HP), ringkasan hitungan ✓/GAGAL di tab Log,
+Tile Quick Settings pemutar preset (PresetTileService; jujur: butuh
+Shizuku jalan, bila belum siap membuka aplikasi). CI `43526742021`
+HIJAU sekali jalan, APK 6.636.956 byte, SHA-256 `398826c8…15ce6`,
+signer SAMA (menimpa v0.4.0), izin tidak berubah. Menunggu uji lapangan
+ekspor & tile user. **v0.4.0 RILIS 2026-11-14** atas perintah
 user ("Lanjutkan") — profil per aplikasi: Mode Game (bucket active +
 whitelist Doze + bg allow) / Mode Tidur (restricted + cabut whitelist +
 bg ignore), snapshot trio otomatis + Lepas Profil memulihkan keadaan
