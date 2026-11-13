@@ -1,0 +1,76 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.jetbrains.kotlin.compose)
+}
+
+android {
+    namespace 'id.optmobileku'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "id.optmobileku"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
+    signingConfigs {
+        // Opt Mobileku: keystore tetap (JKS) dari secret CI sejak rilis pertama.
+        // Tanpa env OPTMOBILEKU_STORE_FILE, build memakai debug bawaan
+        // (workflow CI gagal eksplisit bila secret keystore kosong).
+        pinned {
+            storeFile file(System.getenv("OPTMOBILEKU_STORE_FILE") ?: "/nonexistent/optmobileku-pinned.keystore")
+            storePassword System.getenv("OPTMOBILEKU_STORE_PASSWORD") ?: "android"
+            keyAlias System.getenv("OPTMOBILEKU_KEY_ALIAS") ?: "optmobileku"
+            keyPassword System.getenv("OPTMOBILEKU_KEY_PASSWORD") ?: "android"
+            storeType "jks"
+        }
+    }
+
+    buildTypes {
+        release {
+            if (System.getenv("OPTMOBILEKU_STORE_FILE")) {
+                signingConfig signingConfigs.pinned
+            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            if (System.getenv("OPTMOBILEKU_STORE_FILE")) {
+                signingConfig signingConfigs.pinned
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation libs.core.ktx
+    implementation libs.activity.compose
+    implementation libs.lifecycle.viewmodel.compose
+    implementation libs.lifecycle.runtime.compose
+    implementation platform(libs.compose.bom)
+    implementation libs.compose.ui
+    implementation libs.compose.ui.graphics
+    implementation libs.compose.ui.tooling.preview
+    implementation libs.compose.material3
+    debugImplementation libs.compose.ui.tooling
+    // Shizuku v13: provider dipisah ke artifact sendiri — keduanya wajib.
+    // (Pelajaran RuangApung v0.2.0/v0.2.1: hanya api = crash / tak terdeteksi.)
+    implementation libs.shizuku.api
+    implementation libs.shizuku.provider
+}

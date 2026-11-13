@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opt Mobileku — Mockup v0.1</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', system-ui, sans-serif; }
+  body { background:#EDEAE2; padding:28px 16px 40px; color:#161616; }
+  h1.title { text-align:center; font-size:26px; font-weight:900; letter-spacing:-.5px; }
+  p.sub { text-align:center; color:#555; margin:6px 0 26px; font-size:14px; }
+  .row { display:flex; gap:22px; justify-content:center; flex-wrap:wrap; }
+  .phone { width:300px; background:#FFFDF7; border:3px solid #161616; border-radius:28px;
+           box-shadow:7px 7px 0 #161616; overflow:hidden; }
+  .notch { height:22px; display:flex; justify-content:center; align-items:center; }
+  .notch i { width:74px; height:13px; background:#161616; border-radius:8px; display:block; }
+  .screen { padding:10px 14px 16px; min-height:540px; display:flex; flex-direction:column; }
+  .caption { text-align:center; font-weight:800; margin-top:12px; font-size:14px; }
+  .appbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .logo { font-size:20px; font-weight:900; } .logo span { background:#FFD02E; border:2.5px solid #161616;
+    border-radius:8px; padding:1px 7px; box-shadow:3px 3px 0 #161616; }
+  .iconbtn { width:34px; height:34px; border:2.5px solid #161616; border-radius:10px; background:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:2.5px 2.5px 0 #161616; }
+  .card { background:#fff; border:2.5px solid #161616; border-radius:14px; padding:11px 12px;
+    box-shadow:3.5px 3.5px 0 #161616; margin-bottom:11px; }
+  .rname { font-weight:900; font-size:15px; display:flex; align-items:center; gap:7px; }
+  .dot { width:10px; height:10px; border-radius:50%; border:2px solid #161616; flex:none; }
+  .on { background:#2FBF71; } .off { background:#FF5A5A; } .warn { background:#FFD02E; }
+  .rmeta { color:#666; font-size:12px; margin-top:3px; line-height:1.45; }
+  .chips { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .chip { font-size:11px; font-weight:700; border:2px solid #161616; border-radius:999px; padding:2px 8px; background:#FFF3C4; }
+  .chip.blue { background:#DCEEFF; } .chip.green { background:#D9F5E5; } .chip.grey { background:#EEE; } .chip.red { background:#FFE0E0; }
+  .preset { display:flex; gap:9px; margin-bottom:11px; }
+  .pbtn { flex:1; border:2.5px solid #161616; border-radius:13px; padding:10px 4px; text-align:center;
+    background:#fff; box-shadow:3px 3px 0 #161616; font-weight:900; font-size:12.5px; line-height:1.35; }
+  .pbtn small { display:block; font-weight:700; font-size:10.5px; color:#666; margin-top:2px; }
+  .pbtn.act { background:#FFD02E; }
+  .pbtn.green.act { background:#2FBF71; color:#fff; } .pbtn.green.act small { color:#E8FFF2; }
+  .btn { background:#FFD02E; border:3px solid #161616; border-radius:14px; padding:11px;
+    font-weight:900; font-size:14.5px; text-align:center; box-shadow:4px 4px 0 #161616; }
+  .btn.white { background:#fff; } .btn.red { background:#FF5A5A; color:#fff; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .stat .lbl { font-size:11px; font-weight:800; color:#777; text-transform:uppercase; letter-spacing:.4px; }
+  .stat .val { font-size:19px; font-weight:900; margin-top:2px; }
+  .stat .val small { font-size:11.5px; font-weight:700; color:#666; }
+  .bar { height:9px; border:2px solid #161616; border-radius:99px; margin-top:7px; background:#fff; overflow:hidden; }
+  .bar i { display:block; height:100%; background:#2FBF71; } .bar i.y { background:#FFD02E; } .bar i.r { background:#FF5A5A; }
+  .secttl { font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; margin:4px 0 8px; }
+  .trow { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .tname { font-weight:900; font-size:14px; } .tdesc { font-size:11.5px; color:#666; margin-top:2px; line-height:1.4; }
+  .seg { display:flex; border:2.5px solid #161616; border-radius:10px; overflow:hidden; flex:none; }
+  .seg b { padding:5px 9px; font-size:12px; background:#fff; border-right:2px solid #161616; }
+  .seg b:last-child { border-right:none; } .seg b.act { background:#FFD02E; }
+  .tog { width:46px; height:26px; border:2.5px solid #161616; border-radius:99px; background:#fff; flex:none; position:relative; }
+  .tog i { position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:#161616; display:block; }
+  .tog.on { background:#2FBF71; } .tog.on i { left:22px; background:#fff; }
+  .tabbar { display:flex; gap:8px; margin-top:auto; }
+  .tab { flex:1; text-align:center; font-size:11px; font-weight:800; padding:7px 0; border:2.5px solid #161616;
+    border-radius:10px; background:#fff; }
+  .tab.act { background:#FFD02E; box-shadow:2.5px 2.5px 0 #161616; }
+  .ok { color:#1B8C4E; font-weight:900; font-size:11.5px; }
+</style>
+</head>
+<body>
+<h1 class="title">Opt Mobileku — Mockup v0.1 (Fondasi + Preset)</h1>
+<p class="sub">Soft neobrutalism • Bahasa Indonesia • Via Shizuku (tanpa root) • Bukan aplikasi final</p>
+<div class="row">
+
+  <!-- Layar 1: Beranda -->
+  <div>
+    <div class="phone"><div class="notch"><i></i></div><div class="screen">
+      <div class="appbar"><div class="logo"><span>⚡</span> Opt Mobileku</div><div class="iconbtn">⚙️</div></div>
+      <div class="card">
+        <div class="rname"><span class="dot on"></span>Shizuku Siap</div>
+        <div class="rmeta">Infinix HOT 60 Pro • Android 15 • XOS<br>Snapshot asal tersimpan — aman dipulihkan</div>
+        <div class="chips"><span class="chip green">Preset: Seimbang</span><span class="chip blue">12 perubahan tercatat</span></div>
+      </div>
+      <div class="secttl">Preset 1-Tap</div>
+      <div class="preset">
+        <div class="pbtn green">🔋 Hemat<small>Baterai awet</small></div>
+        <div class="pbtn act">⚖️ Seimbang<small>Bawaan enak</small></div>
+        <div class="pbtn">🎮 Performa<small>Buat game</small></div>
+      </div>
+      <div class="grid">
+        <div class="card stat"><div class="lbl">RAM Terpakai</div><div class="val">5,1<small> / 8 GB</small></div><div class="bar"><i class="y" style="width:64%"></i></div></div>
+        <div class="card stat"><div class="lbl">Penyimpanan</div><div class="val">71<small> / 128 GB</small></div><div class="bar"><i style="width:55%"></i></div></div>
+        <div class="card stat"><div class="lbl">Baterai</div><div class="val">68<small>% • Sehat</small></div><div class="bar"><i style="width:68%"></i></div></div>
+        <div class="card stat"><div class="lbl">Animasi UI</div><div class="val">0.5<small>x • Cepat</small></div><div class="rmeta">Normalnya 1.0x</div></div>
+      </div>
+      <div class="btn white">↩️ &nbsp;Pulihkan Semua ke Awal</div>
+      <div class="tabbar"><div class="tab act">Beranda</div><div class="tab">Optimasi</div><div class="tab">Aplikasi</div><div class="tab">Log</div></div>
+    </div></div>
+    <div class="caption">1 — Beranda &amp; Preset</div>
+  </div>
+
+  <!-- Layar 2: Optimasi -->
+  <div>
+    <div class="phone"><div class="notch"><i></i></div><div class="screen">
+      <div class="appbar"><div class="logo"><span>⚡</span> Optimasi</div><div class="iconbtn">↻</div></div>
+      <div class="secttl">Kelancaran</div>
+      <div class="card"><div class="trow"><div><div class="tname">Skala Animasi</div><div class="tdesc">Jendela, transisi &amp; animator sekaligus</div></div>
+        <div class="seg"><b>0</b><b class="act">0.5x</b><b>1x</b></div></div>
+        <div style="margin-top:6px"><span class="ok">✓ Diterapkan — terbaca balik 0.5</span></div></div>
+      <div class="card"><div class="trow"><div><div class="tname">Optimasi Aplikasi (ART)</div><div class="tdesc">Kompilasi ulang semua aplikasi pakai profil — HP sibuk beberapa menit</div></div></div>
+        <div class="btn" style="margin-top:9px; padding:8px; font-size:13.5px;">▶ Jalankan bg-dexopt</div></div>
+      <div class="card"><div class="trow"><div><div class="tname">Pangkas Cache</div><div class="tdesc">Bersihkan cache semua aplikasi sekaligus</div></div>
+        <div class="btn white" style="padding:6px 10px; font-size:12.5px; border-width:2.5px;">Bersihkan</div></div></div>
+      <div class="secttl">Baterai</div>
+      <div class="card"><div class="trow"><div><div class="tname">Penghemat Baterai</div><div class="tdesc">Mode hemat daya sistem</div></div><div class="tog"><i></i></div></div></div>
+      <div class="card"><div class="trow"><div><div class="tname">Baterai Adaptif</div><div class="tdesc">Batasi aplikasi jarang dipakai otomatis</div></div><div class="tog on"><i></i></div></div>
+        <div style="margin-top:6px"><span class="ok">✓ Diterapkan — terbaca balik ON</span></div></div>
+      <div class="tabbar"><div class="tab">Beranda</div><div class="tab act">Optimasi</div><div class="tab">Aplikasi</div><div class="tab">Log</div></div>
+    </div></div>
+    <div class="caption">2 — Optimasi Manual</div>
+  </div>
+
+  <!-- Layar 3: Aplikasi -->
+  <div>
+    <div class="phone"><div class="notch"><i></i></div><div class="screen">
+      <div class="appbar"><div class="logo"><span>⚡</span> Aplikasi</div><div class="iconbtn">🔍</div></div>
+      <div class="rmeta" style="margin-bottom:9px">Ketuk aplikasi untuk atur background, bucket standby &amp; Doze-nya. Aplikasi inti terkunci 🔒 demi keamanan.</div>
+      <div class="card">
+        <div class="trow"><div><div class="tname">🎮 Mobile Legends</div><div class="tdesc">Bucket: Aktif • Whitelist Doze: Ya</div></div><span class="chip green">Game</span></div>
+      </div>
+      <div class="card">
+        <div class="trow"><div><div class="tname">📱 TikTok</div><div class="tdesc">Bucket: Jarang • Background: Dibatasi</div></div><span class="chip">Hemat</span></div>
+      </div>
+      <div class="card">
+        <div class="trow"><div><div class="tname">🛍️ Aplikasi Bawaan Toko</div><div class="tdesc">Sistem • Bisa dinonaktifkan / dicopot utk user ini</div></div><span class="chip red">Bloatware?</span></div>
+      </div>
+      <div class="card" style="opacity:.7">
+        <div class="trow"><div><div class="tname">🔒 Pengaturan Sistem</div><div class="tdesc">Aplikasi inti — dilindungi, tidak bisa diubah</div></div><span class="chip grey">Terkunci</span></div>
+      </div>
+      <div class="card">
+        <div class="tname" style="font-size:13.5px">↩️ Semua perubahan di layar ini bisa dibatalkan</div>
+        <div class="tdesc">Copot = khusus user ini saja &amp; bisa dipulihkan (install-existing). Nonaktifkan &amp; suspend juga reversibel.</div>
+      </div>
+      <div class="tabbar"><div class="tab">Beranda</div><div class="tab">Optimasi</div><div class="tab act">Aplikasi</div><div class="tab">Log</div></div>
+    </div></div>
+    <div class="caption">3 — Aplikasi (target v0.2)</div>
+  </div>
+
+</div>
+</body>
+</html>
