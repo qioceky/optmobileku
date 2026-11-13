@@ -8,6 +8,19 @@ Dibangun lengkap secara bertahap: v0.1 fondasi + preset, menuju manajemen
 aplikasi/bloatware (v0.2), tampilan & jaringan (v0.3), dan profil per
 aplikasi (v0.4). Rancangan lengkap ada di [`RANCANGAN.md`](RANCANGAN.md).
 
+## Perbaikan v0.3.2 — Log Eksekusi rinci
+
+Atas permintaan user, log tidak lagi cuma ringkasan teks. Tab Log kini
+punya **Log Eksekusi**: SETIAP perintah shell yang dijalankan aplikasi
+dicatat apa adanya — teks perintahnya, **kode exit**, durasi, dan
+**output mentah** (stdout+stderr memang sudah digabung di ShellService).
+Perintah yang tidak sempat jalan tercatat `exit=TIDAK-JALAN (Shizuku
+belum siap)`. Output raksasa dipotong 1.000 karakter dengan penanda
+jumlah totalnya. Tombol Salin Log menggabungkan Log Perubahan + Log
+Eksekusi dalam satu teks. Implementasi: hook `execLogger` di
+`ShizukuCtl.execBlocking` (satu-satunya gerbang eksekusi) → file
+`exec_log.txt` terpisah via `OptStore`.
+
 ## Perbaikan v0.3.1 — Refresh rate jalur Transsion
 
 Uji lapangan v0.3.0 di Infinix: refresh rate ditolak & tetap lock 60Hz

@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,6 +67,7 @@ fun OptMobilekuApp() {
         var busy by remember { mutableStateOf<String?>(null) }
         var results by remember { mutableStateOf<List<Optimizer.TweakResult>>(emptyList()) }
         var logLines by remember { mutableStateOf(OptStore.readLog(context)) }
+        var execLines by remember { mutableStateOf(OptStore.readExecLog(context)) }
         var showRestoreConfirm by remember { mutableStateOf(false) }
         var showDexoptConfirm by remember { mutableStateOf(false) }
 
@@ -73,6 +75,7 @@ fun OptMobilekuApp() {
             presetLabel = OptStore.getPreset(context)
             hasSnapshot = OptStore.hasSnapshot(context)
             logLines = OptStore.readLog(context)
+            execLines = OptStore.readExecLog(context)
         }
 
         fun loadCurrent() {
@@ -210,7 +213,16 @@ fun OptMobilekuApp() {
                     )
                     3 -> LogTab(
                         logLines = logLines,
-                        onCopyLog = { copyToClipboard(context, "optmobileku-log", logLines.joinToString("\n")) },
+                        execLines = execLines,
+                        onCopyLog = {
+                            val combined = buildString {
+                                append("=== LOG PERUBAHAN ===\n")
+                                append(logLines.joinToString("\n"))
+                                append("\n\n=== LOG EKSEKUSI (perintah + exit + output) ===\n")
+                                append(execLines.joinToString("\n"))
+                            }
+                            copyToClipboard(context, "optmobileku-log", combined)
+                        },
                         onClearLog = {
                             OptStore.clearLog(context)
                             reloadLocal()
@@ -581,11 +593,13 @@ private fun ToggleCard(
 @Composable
 private fun LogTab(
     logLines: List<String>,
+    execLines: List<String>,
     onCopyLog: () -> Unit,
     onClearLog: () -> Unit,
     onCopyCrash: () -> Unit,
     hasCrash: Boolean,
 ) {
+    val anyLog = logLines.isNotEmpty() || execLines.isNotEmpty()
     Text("LOG PERUBAHAN", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
     Spacer(Modifier.height(7.dp))
     if (logLines.isEmpty()) {
@@ -599,10 +613,38 @@ private fun LogTab(
             }
         }
     }
-    Spacer(Modifier.height(11.dp))
-    NeoButton("📋 Salin Log", fill = Color.White, enabled = logLines.isNotEmpty()) { onCopyLog() }
+    Spacer(Modifier.height(14.dp))
+    Text("LOG EKSEKUSI — PERINTAH + OUTPUT", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
+    Spacer(Modifier.height(7.dp))
+    NeoCard {
+        Text(
+            "Setiap perintah shell yang dijalankan aplikasi, apa adanya: perintahnya ($), " +
+                "kode exit (0 = sukses), durasi, dan output mentahnya. Output sangat panjang " +
+                "dipotong dengan penanda. exit=TIDAK-JALAN berarti Shizuku belum siap saat itu.",
+            color = Muted, fontSize = 12.5.sp
+        )
+    }
     Spacer(Modifier.height(9.dp))
-    NeoButton("🗑️ Hapus Log", fill = Color.White, enabled = logLines.isNotEmpty()) { onClearLog() }
+    if (execLines.isEmpty()) {
+        NeoCard {
+            Text("Belum ada eksekusi tercatat.", color = Muted, fontSize = 13.sp)
+        }
+    } else {
+        NeoCard {
+            execLines.asReversed().forEach { line ->
+                Text(
+                    line,
+                    fontSize = 11.5.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(vertical = 1.dp)
+                )
+            }
+        }
+    }
+    Spacer(Modifier.height(11.dp))
+    NeoButton("📋 Salin Log (Perubahan + Eksekusi)", fill = Color.White, enabled = anyLog) { onCopyLog() }
+    Spacer(Modifier.height(9.dp))
+    NeoButton("🗑️ Hapus Log", fill = Color.White, enabled = anyLog) { onClearLog() }
     if (hasCrash) {
         Spacer(Modifier.height(9.dp))
         NeoButton("📋 Salin Log Crash Terakhir", fill = OptRed, textColor = Color.White) { onCopyCrash() }
@@ -644,7 +686,8 @@ private fun InfoTab() {
         Text(
             "v0.1: fondasi Shizuku + preset + animasi/baterai/ART/cache + snapshot & pulihkan.\n" +
                 "v0.2 (ini): manajemen aplikasi & bloatware — tab Aplikasi (bucket standby, Doze, background, suspend, nonaktifkan/copot reversibel + daftar lindung).\n" +
-                "v0.3.1 (ini): perbaikan refresh rate untuk HP Transsion (Infinix/Tecno) — menulis jalur generik + kunci vendor tran_*, tombol 144Hz, dan Diagnosis Refresh Rate ke tab Log.\n" +
+                "v0.3.2 (ini): Log Eksekusi rinci — setiap perintah shell tercatat dengan kode exit, durasi, dan output mentahnya di tab Log (Salin Log kini menggabungkan Log Perubahan + Log Eksekusi).\n" +
+                "v0.3.1: perbaikan refresh rate untuk HP Transsion (Infinix/Tecno) — menulis jalur generik + kunci vendor tran_*, tombol 144Hz, dan Diagnosis Refresh Rate ke tab Log.\n" +
                 "v0.3: tampilan & jaringan — DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset.\n" +
                 "v0.4: profil per aplikasi (Mode Game / Mode Tidur).",
             fontSize = 13.sp

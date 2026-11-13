@@ -144,18 +144,48 @@ object ShizukuCtl {
     }
 
     /**
+     * Hook log eksekusi (v0.3.2): dipanggil untuk SETIAP perintah yang
+     * lewat execBlocking — (perintah, kode exit, output mentah, durasi ms).
+     * Kode exit null = perintah tidak sempat jalan (service belum siap).
+     * Diisi OptApplication dengan penulis ke OptStore; ShizukuCtl sendiri
+     * tidak tahu-menahu soal penyimpanan.
+     */
+    @Volatile
+    var execLogger: ((cmd: String, exitCode: Int?, output: String, durationMs: Long) -> Unit)? = null
+
+    private fun logExec(cmd: String, exitCode: Int?, output: String, startedAt: Long) {
+        runCatching {
+            execLogger?.invoke(cmd, exitCode, output, System.currentTimeMillis() - startedAt)
+        }
+    }
+
+    /**
      * Jalankan perintah shell dan tunggu hasilnya. HARUS dipanggil dari
      * background thread. Null bila service belum siap.
      */
     fun execBlocking(cmd: String): ShellResult? {
-        val s = service ?: return null
-        if (!bound) return null
-        val raw = runCatching { s.exec(cmd) }.getOrElse { return ShellResult("ERROR: ${it.message}", -1) }
+        val startedAt = System.currentTimeMillis()
+        val s = service
+        if (s == null || !bound) {
+            logExec(cmd, null, "", startedAt)
+            return null
+        }
+        val raw = runCatching { s.exec(cmd) }.getOrElse {
+            val res = ShellResult("ERROR: ${it.message}", -1)
+            logExec(cmd, res.exitCode, res.output, startedAt)
+            return res
+        }
         val marker = "<<<EXIT:"
         val idx = raw.lastIndexOf(marker)
-        if (idx < 0) return ShellResult(raw.trim(), -1)
+        if (idx < 0) {
+            val res = ShellResult(raw.trim(), -1)
+            logExec(cmd, res.exitCode, res.output, startedAt)
+            return res
+        }
         val codeStr = raw.substring(idx + marker.length).removeSuffix(">>>").trim()
         val output = raw.substring(0, idx).trim()
-        return ShellResult(output, codeStr.toIntOrNull() ?: -1)
+        val res = ShellResult(output, codeStr.toIntOrNull() ?: -1)
+        logExec(cmd, res.exitCode, res.output, startedAt)
+        return res
     }
 }
