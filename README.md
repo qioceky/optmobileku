@@ -34,6 +34,29 @@ Eksekusi dalam satu teks. Implementasi: hook `execLogger` di
 `ShizukuCtl.execBlocking` (satu-satunya gerbang eksekusi) → file
 `exec_log.txt` terpisah via `OptStore`.
 
+## Fitur v0.4.0 — Profil per aplikasi
+
+Di tab Aplikasi, setiap aplikasi (selain daftar lindung) kini bisa
+diberi **profil** — tiga knob v0.2 diterapkan sekaligus:
+
+- **🎮 Mode Game**: bucket standby Aktif + whitelist Doze + background
+  diizinkan.
+- **😴 Mode Tidur**: bucket Dibatasi + whitelist dicabut + background
+  ignore (hemat maksimal; notifikasi bisa telat, dinyatakan di UI).
+- Sebelum profil pertama diterapkan, keadaan asal trio aplikasi itu
+  **disnapshot**; tombol **Lepas Profil** memulihkannya persis.
+  Penanda profil hanya disimpan bila 3/3 aksi terbaca-balik sukses.
+- Kartu **Terapkan Ulang Semua Profil** di daftar aplikasi untuk
+  menerapkan ulang seluruh profil tersimpan sekaligus (berguna sesudah
+  restart HP).
+- **Ekspor snapshot**: tombol Salin Snapshot (JSON) di tab Info.
+- Kartu refresh rate kini memuat catatan terverifikasi XOS: plafon
+  120/144Hz aktif di game/aplikasi terpilih, UI umum ditahan 90Hz dari
+  pabrik — sama seperti Pengaturan bawaan (kasus ditutup 2026-11-14).
+
+Yang belum masuk v0.4 (jujur): grafik riwayat perubahan — riwayat teks
+di tab Log tetap tersedia.
+
 ## Perbaikan v0.3.1 — Refresh rate jalur Transsion
 
 Uji lapangan v0.3.0 di Infinix: refresh rate ditolak & tetap lock 60Hz

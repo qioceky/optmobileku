@@ -130,6 +130,83 @@ object OptStore {
         return runCatching { f.readLines().filter { it.isNotBlank() } }.getOrDefault(emptyList())
     }
 
+    // ---------- Profil per aplikasi (v0.4) ----------
+    // app_profiles.json: {pkg: "GAME"|"TIDUR"} — penanda profil aktif.
+    // app_profile_snapshots.json: {pkg: {bucket: kode|null, doze: bool|null,
+    // bg: bool|null}} — keadaan trio (bucket/whitelist/background) SEBELUM
+    // profil pertama diterapkan; bahan tombol "Lepas Profil".
+
+    private const val PROFILES_FILE = "app_profiles.json"
+    private const val PROFILE_SNAP_FILE = "app_profile_snapshots.json"
+
+    private fun readJson(context: Context, name: String): JSONObject {
+        val f = File(context.filesDir, name)
+        if (!f.exists()) return JSONObject()
+        return runCatching { JSONObject(f.readText()) }.getOrDefault(JSONObject())
+    }
+
+    private fun writeJson(context: Context, name: String, json: JSONObject) {
+        runCatching { File(context.filesDir, name).writeText(json.toString()) }
+    }
+
+    @Synchronized
+    fun getAllAppProfiles(context: Context): Map<String, String> {
+        val json = readJson(context, PROFILES_FILE)
+        val out = mutableMapOf<String, String>()
+        val keys = json.keys()
+        while (keys.hasNext()) {
+            val k = keys.next()
+            json.optString(k).takeIf { it.isNotBlank() }?.let { out[k] = it }
+        }
+        return out
+    }
+
+    fun getAppProfile(context: Context, pkg: String): String? =
+        getAllAppProfiles(context)[pkg]
+
+    @Synchronized
+    fun setAppProfile(context: Context, pkg: String, profile: String?) {
+        val json = readJson(context, PROFILES_FILE)
+        if (profile == null) json.remove(pkg) else json.put(pkg, profile)
+        writeJson(context, PROFILES_FILE, json)
+    }
+
+    /** Simpan keadaan trio pkg HANYA bila belum pernah disimpan. */
+    @Synchronized
+    fun saveProfileSnapshotOnce(
+        context: Context,
+        pkg: String,
+        bucketCode: Int?,
+        dozeWhitelisted: Boolean?,
+        backgroundIgnored: Boolean?,
+    ) {
+        val json = readJson(context, PROFILE_SNAP_FILE)
+        if (json.has(pkg)) return
+        val entry = JSONObject()
+        entry.put("bucket", bucketCode ?: JSONObject.NULL)
+        entry.put("doze", dozeWhitelisted ?: JSONObject.NULL)
+        entry.put("bg", backgroundIgnored ?: JSONObject.NULL)
+        json.put(pkg, entry)
+        writeJson(context, PROFILE_SNAP_FILE, json)
+    }
+
+    /** (bucketCode, dozeWhitelisted, backgroundIgnored) asal, atau null bila tak ada snapshot. */
+    fun getProfileSnapshot(context: Context, pkg: String): Triple<Int?, Boolean?, Boolean?>? {
+        val json = readJson(context, PROFILE_SNAP_FILE)
+        if (!json.has(pkg)) return null
+        val e = json.optJSONObject(pkg) ?: return null
+        fun intOrNull(k: String): Int? = if (e.isNull(k)) null else e.optInt(k)
+        fun boolOrNull(k: String): Boolean? = if (e.isNull(k)) null else e.optBoolean(k)
+        return Triple(intOrNull("bucket"), boolOrNull("doze"), boolOrNull("bg"))
+    }
+
+    /** Isi snapshot.json utama dalam bentuk rapi, untuk diekspor user. */
+    fun exportSnapshotJson(context: Context): String {
+        val f = snapshotFile(context)
+        if (!f.exists()) return "{}"
+        return runCatching { JSONObject(f.readText()).toString(2) }.getOrDefault("{}")
+    }
+
     // ---------- Preset aktif ----------
 
     fun getPreset(context: Context): String =

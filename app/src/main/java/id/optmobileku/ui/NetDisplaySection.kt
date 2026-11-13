@@ -157,8 +157,11 @@ fun NetDisplaySection(
     NeoCard(fill = Color(0xFFFFF3C4)) {
         Text("Refresh Rate — EKSPERIMENTAL ⚠️", fontWeight = FontWeight.Black, fontSize = 15.sp)
         Text(
-            "v0.3.1: menulis DUA jalur sekaligus — generik Android (peak_refresh_rate) dan jalur " +
+            "Menulis DUA jalur sekaligus — generik Android (peak_refresh_rate) dan jalur " +
                 "vendor Transsion/XOS (tran_refresh_mode dkk). Hasil tiap kunci dibaca-balik satu-satu di bawah.\n" +
+                "Catatan terverifikasi di Infinix (XOS): setting ini menentukan PLAFON refresh. " +
+                "Di tampilan umum, XOS menahan refresh di 90Hz dari pabriknya (dari Pengaturan bawaan pun sama); " +
+                "120/144Hz-nya aktif di game & aplikasi terpilih. Jadi plafon 144 di sini = plafon 144 di Pengaturan bawaan.\n" +
                 "Saat ini: puncak ${s?.peakHz ?: "bawaan"} • minimum ${s?.minHz ?: "bawaan"} • " +
                 "mode XOS ${s?.tranRefreshMode ?: "tidak terbaca"}",
             color = Muted, fontSize = 12.5.sp, modifier = Modifier.padding(top = 3.dp)

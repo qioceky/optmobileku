@@ -655,6 +655,21 @@ private fun LogTab(
 
 @Composable
 private fun InfoTab() {
+    val context = LocalContext.current
+    Text("EKSPOR SNAPSHOT (v0.4)", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
+    Spacer(Modifier.height(7.dp))
+    NeoCard {
+        Text(
+            "Snapshot berisi nilai ASAL semua setting yang pernah diubah aplikasi ini — bahan tombol Pulihkan Semua. " +
+                "Salin untuk cadangan/dibagikan saat diagnosis.",
+            fontSize = 13.sp
+        )
+        Spacer(Modifier.height(9.dp))
+        NeoButton("📋 Salin Snapshot (JSON)", fill = Color.White) {
+            copyToClipboard(context, "optmobileku-snapshot", OptStore.exportSnapshotJson(context))
+        }
+    }
+    Spacer(Modifier.height(11.dp))
     Text("PANDUAN SHIZUKU", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
     Spacer(Modifier.height(7.dp))
     NeoCard {
@@ -685,12 +700,12 @@ private fun InfoTab() {
     NeoCard {
         Text(
             "v0.1: fondasi Shizuku + preset + animasi/baterai/ART/cache + snapshot & pulihkan.\n" +
-                "v0.2 (ini): manajemen aplikasi & bloatware — tab Aplikasi (bucket standby, Doze, background, suspend, nonaktifkan/copot reversibel + daftar lindung).\n" +
-                "v0.3.3 (ini): Diagnosis Refresh Rate tanpa potongan — semua kunci refresh/tran_/preferred tampil penuh + baris mode display aktif dari dumpsys, untuk memburu gerbang 90Hz di XOS.\n" +
+                "v0.2: manajemen aplikasi & bloatware — tab Aplikasi (bucket standby, Doze, background, suspend, nonaktifkan/copot reversibel + daftar lindung).\n" +
+                "v0.3.3: Diagnosis Refresh Rate tanpa potongan — semua kunci refresh/tran_/preferred tampil penuh + baris mode display aktif dari dumpsys, untuk memburu gerbang 90Hz di XOS.\n" +
                 "v0.3.2: Log Eksekusi rinci — setiap perintah shell tercatat dengan kode exit, durasi, dan output mentahnya di tab Log (Salin Log kini menggabungkan Log Perubahan + Log Eksekusi).\n" +
                 "v0.3.1: perbaikan refresh rate untuk HP Transsion (Infinix/Tecno) — menulis jalur generik + kunci vendor tran_*, tombol 144Hz, dan Diagnosis Refresh Rate ke tab Log.\n" +
                 "v0.3: tampilan & jaringan — DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset.\n" +
-                "v0.4: profil per aplikasi (Mode Game / Mode Tidur).",
+                "v0.4 (ini): profil per aplikasi — 🎮 Mode Game / 😴 Mode Tidur di tab Aplikasi (bucket + Doze + background sekaligus, snapshot asal, Lepas Profil, Terapkan Ulang Semua) + ekspor snapshot JSON di tab Info.",
             fontSize = 13.sp
         )
     }

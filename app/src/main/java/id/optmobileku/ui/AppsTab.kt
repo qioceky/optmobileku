@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.optmobileku.core.AppManager
 import id.optmobileku.core.Optimizer
+import id.optmobileku.data.OptStore
 import kotlinx.coroutines.launch
 
 /**
@@ -59,14 +60,20 @@ fun AppsTab(
     var results by remember { mutableStateOf<List<Optimizer.TweakResult>>(emptyList()) }
     var confirmUninstall by remember { mutableStateOf(false) }
     var confirmDisable by remember { mutableStateOf(false) }
+    var profiles by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    fun refreshProfiles() {
+        profiles = OptStore.getAllAppProfiles(context)
+    }
 
     fun loadApps() {
         scope.launch {
             apps = AppManager.loadApps(context)
+            refreshProfiles()
         }
     }
 
-    LaunchedEffect(Unit) { loadApps() }
+    LaunchedEffect(Unit) { refreshProfiles(); loadApps() }
 
     fun loadDetail(pkg: String) {
         if (!ready) {
@@ -82,13 +89,16 @@ fun AppsTab(
     }
 
     fun doAction(name: String, block: suspend () -> Optimizer.TweakResult) {
+        doActionList(name) { listOf(block()) }
+    }
+
+    fun doActionList(name: String, block: suspend () -> List<Optimizer.TweakResult>) {
         if (busy != null) return
         busy = name
         scope.launch {
-            val r = runCatching { block() }.getOrElse {
-                Optimizer.TweakResult(name, false, "Error: ${it.message}")
+            results = runCatching { block() }.getOrElse {
+                listOf(Optimizer.TweakResult(name, false, "Error: ${it.message}"))
             }
-            results = listOf(r)
             busy = null
             loadApps()
             selected?.let { loadDetail(it.pkg) }
@@ -98,6 +108,7 @@ fun AppsTab(
                     val fresh = AppManager.loadApps(context)
                     apps = fresh
                     selected = fresh.firstOrNull { it.pkg == sel.pkg } ?: sel
+                    refreshProfiles()
                     onAfterAction()
                 }
             } ?: onAfterAction()
@@ -111,6 +122,28 @@ fun AppsTab(
                 NeoCard(fill = Color(0xFFFFF3C4)) {
                     Text("Mode lihat saja — aktifkan Shizuku untuk mengubah aplikasi. Daftar tetap bisa ditelusuri.", fontSize = 12.5.sp, fontWeight = FontWeight.Bold)
                 }
+                Spacer(Modifier.height(9.dp))
+            }
+            if (profiles.isNotEmpty()) {
+                val nGame = profiles.values.count { it == AppManager.PROFILE_GAME }
+                val nTidur = profiles.values.count { it == AppManager.PROFILE_TIDUR }
+                NeoCard {
+                    Text("PROFIL APLIKASI (v0.4)", fontWeight = FontWeight.Black, fontSize = 12.5.sp)
+                    Text(
+                        "Tersimpan: 🎮 $nGame Mode Game • 😴 $nTidur Mode Tidur. " +
+                            "Profil = bucket + whitelist Doze + background, diterapkan sekaligus. " +
+                            "Terapkan ulang berguna sesudah HP restart.",
+                        color = Muted, fontSize = 12.5.sp, modifier = Modifier.padding(top = 3.dp)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    NeoButton("Terapkan Ulang Semua Profil", fill = Color.White, enabled = ready && busy == null) {
+                        doActionList("Terapkan semua profil") { AppManager.applyAllProfiles(context) }
+                    }
+                }
+                Spacer(Modifier.height(9.dp))
+            }
+            if (busy != null || results.isNotEmpty()) {
+                ResultsCard(busy = busy, results = results)
                 Spacer(Modifier.height(9.dp))
             }
             OutlinedTextField(
@@ -169,6 +202,10 @@ fun AppsTab(
                                         Chip(if (e.isSystem) "Sistem" else "Pengguna", OptBlue)
                                         if (!e.enabled) Chip("Nonaktif", Color(0xFFFFE0E0))
                                         if (e.protectedReason != null) Chip("🔒 ${e.protectedReason}", Color(0xFFEEEEEE))
+                                        when (profiles[e.pkg]) {
+                                            AppManager.PROFILE_GAME -> Chip("🎮 Game", Color(0xFFDFF7E9))
+                                            AppManager.PROFILE_TIDUR -> Chip("😴 Tidur", Color(0xFFE3E8FF))
+                                        }
                                     }
                                 }
                                 Text("›", fontWeight = FontWeight.Black, fontSize = 20.sp)
@@ -198,6 +235,10 @@ fun AppsTab(
                         Chip(if (sel.isSystem) "Sistem" else "Pengguna", OptBlue)
                         Chip(if (sel.enabled) "Aktif" else "Nonaktif", if (sel.enabled) Color(0xFFDFF7E9) else Color(0xFFFFE0E0))
                         if (sel.protectedReason != null) Chip("🔒 ${sel.protectedReason}", Color(0xFFEEEEEE))
+                        when (profiles[sel.pkg]) {
+                            AppManager.PROFILE_GAME -> Chip("🎮 Mode Game", Color(0xFFDFF7E9))
+                            AppManager.PROFILE_TIDUR -> Chip("😴 Mode Tidur", Color(0xFFE3E8FF))
+                        }
                     }
                     if (ready) {
                         Spacer(Modifier.height(7.dp))
@@ -216,6 +257,30 @@ fun AppsTab(
             }
 
             if (sel.protectedReason == null) {
+                item {
+                    Text("PROFIL APLIKASI (v0.4) — diterapkan sekaligus", fontWeight = FontWeight.Black, fontSize = 12.sp)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        "🎮 Mode Game: bucket Aktif + bebas Doze + background diizinkan.\n" +
+                            "😴 Mode Tidur: bucket Dibatasi + Doze penuh + background dibatasi (notifikasi bisa telat).\n" +
+                            "Keadaan asal aplikasi disnapshot dulu; Lepas Profil memulihkannya.",
+                        color = Muted, fontSize = 12.sp
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        BucketButton("🎮 Mode Game", Modifier.weight(1f), ready && busy == null) {
+                            doActionList("Profil Game") { AppManager.applyProfile(context, sel.pkg, AppManager.PROFILE_GAME) }
+                        }
+                        BucketButton("😴 Mode Tidur", Modifier.weight(1f), ready && busy == null) {
+                            doActionList("Profil Tidur") { AppManager.applyProfile(context, sel.pkg, AppManager.PROFILE_TIDUR) }
+                        }
+                        if (profiles[sel.pkg] != null) {
+                            BucketButton("Lepas Profil", Modifier.weight(1f), ready && busy == null) {
+                                doActionList("Lepas profil") { AppManager.removeProfile(context, sel.pkg) }
+                            }
+                        }
+                    }
+                }
                 item {
                     Text("BUCKET STANDBY (jarang dipakai = makin dibatasi)", fontWeight = FontWeight.Black, fontSize = 12.sp)
                     Spacer(Modifier.height(2.dp))
