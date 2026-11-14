@@ -233,6 +233,27 @@ object OptStore {
         return runCatching { JSONObject(f.readText()).toString(2) }.getOrDefault("{}")
     }
 
+    // ---------- Riwayat terminal (v0.7) ----------
+
+    private const val TERM_HISTORY_FILE = "term_history.txt"
+    private const val TERM_HISTORY_CAP = 50
+
+    fun readTermHistory(context: Context): List<String> {
+        val f = File(context.filesDir, TERM_HISTORY_FILE)
+        if (!f.exists()) return emptyList()
+        return runCatching { f.readLines().filter { it.isNotBlank() } }.getOrDefault(emptyList())
+    }
+
+    @Synchronized
+    fun addTermHistory(context: Context, cmd: String) {
+        runCatching {
+            val lines = readTermHistory(context).toMutableList()
+            if (lines.lastOrNull() != cmd) lines += cmd
+            File(context.filesDir, TERM_HISTORY_FILE)
+                .writeText(lines.takeLast(TERM_HISTORY_CAP).joinToString("\n") + "\n")
+        }
+    }
+
     // ---------- Preset aktif ----------
 
     fun getPreset(context: Context): String =

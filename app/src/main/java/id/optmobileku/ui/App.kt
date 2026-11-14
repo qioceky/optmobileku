@@ -145,7 +145,7 @@ fun OptMobilekuApp() {
             Column(
                 Modifier
                     .weight(1f)
-                    .then(if (tab != 2 && tab != 3) Modifier.verticalScroll(scrollState) else Modifier)
+                    .then(if (tab != 2 && tab != 3 && tab != 4) Modifier.verticalScroll(scrollState) else Modifier)
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 // Header
@@ -226,7 +226,10 @@ fun OptMobilekuApp() {
                         onCopyText = { copyToClipboard(context, "optmobileku-kunci", it) },
                         onAfterAction = { reloadLocal() },
                     )
-                    4 -> LogTab(
+                    4 -> TerminalTab(
+                        ready = shizukuState == ShizukuCtl.State.READY,
+                    )
+                    5 -> LogTab(
                         logLines = logLines,
                         execLines = execLines,
                         onCopyLog = {
@@ -259,7 +262,7 @@ fun OptMobilekuApp() {
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val tabs = listOf("Beranda", "Optimasi", "Aplikasi", "Rahasia", "Log", "Info")
+                val tabs = listOf("Beranda", "Optimasi", "Aplikasi", "Rahasia", "Terminal", "Log", "Info")
                 tabs.forEachIndexed { i, label ->
                     Box(
                         Modifier
@@ -271,7 +274,7 @@ fun OptMobilekuApp() {
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(label, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(label, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
                     }
                 }
             }
@@ -800,7 +803,8 @@ private fun InfoTab() {
                 "v0.3: tampilan & jaringan — DNS pribadi, penghemat data, scan WiFi, font, refresh rate eksperimental, wm density/size + reset.\n" +
                 "v0.4: profil per aplikasi — 🎮 Mode Game / 😴 Mode Tidur di tab Aplikasi (bucket + Doze + background sekaligus, snapshot asal, Lepas Profil, Terapkan Ulang Semua) + ekspor snapshot JSON di tab Info.\n" +
                 "v0.5: Ekspor Log ke file (simpan/bagikan, dengan header info HP) + ringkasan hitungan sukses/gagal di tab Log + Tile Quick Settings untuk memutar preset.\n" +
-                "v0.6 (ini): tab Rahasia — pemindai fitur tersembunyi: kunci setting (lihat/ubah aman, snapshot generik ikut Pulihkan Semua) + menu tersembunyi (kode rahasia & layar exported berpola rahasia).",
+                "v0.6: tab Rahasia — pemindai fitur tersembunyi: kunci setting (lihat/ubah aman, snapshot generik ikut Pulihkan Semua) + menu tersembunyi (kode rahasia & layar exported berpola rahasia).\n" +
+                "v0.7 (ini): tab Terminal — konsol shell via Shizuku (uid 2000): riwayat perintah ▲▼, perintah cepat, konfirmasi perintah destruktif, semua tercatat di Log Eksekusi.",
             fontSize = 13.sp
         )
     }

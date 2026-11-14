@@ -34,6 +34,28 @@ Eksekusi dalam satu teks. Implementasi: hook `execLogger` di
 `ShizukuCtl.execBlocking` (satu-satunya gerbang eksekusi) → file
 `exec_log.txt` terpisah via `OptStore`.
 
+## Fitur v0.7.0 — Terminal shell (tab Terminal)
+
+Atas permintaan user ("tambahkan fitur terminal"):
+
+- **Konsol shell** lewat jalur Shizuku yang sama dengan seluruh
+  aplikasi (uid shell 2000, bukan root): ketik perintah, output +
+  `[exit N]` tampil di konsol monospace gelap. Isi konsol bertahan
+  saat berpindah tab (sesi di memori proses).
+- **Riwayat perintah** persisten (50 terakhir, file lokal) dengan
+  tombol ▲/▼; **perintah cepat** sekali ketuk-isi: info perangkat,
+  baterai, proses teratas, penyimpanan, aplikasi user, refresh rate,
+  jaringan, log sistem.
+- **Konfirmasi destruktif**: pola `rm -rf`, `pm uninstall/clear/
+  disable`, `settings delete`, `reboot`, `wipe`, `dd if=`, dll
+  memunculkan dialog sebelum jalan.
+- Semua perintah terminal **tercatat di Log Eksekusi** (hook yang
+  sama sejak v0.3.2) dan ikut terekspor.
+- Batas jujur di UI: bukan sesi interaktif — perintah yang
+  menggantung dipotong service di 120 detik (pakai `top -n 1`,
+  `ping -c 3`, `logcat -d`); output tampilan dipotong di 20.000
+  karakter per perintah dengan penanda.
+
 ## Fitur v0.6.0 — Pemindai fitur tersembunyi (tab Rahasia)
 
 Atas permintaan user ("cari fitur tersembunyi", keduanya dipilih):
