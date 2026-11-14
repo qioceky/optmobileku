@@ -1,6 +1,14 @@
 # RANCANGAN — Opt Mobileku (settingan optimasi Android via Shizuku)
 
-Tanggal: 2026-11-13. Status: **v0.6.0 RILIS 2026-11-14** atas
+Tanggal: 2026-11-13. Status: **v0.7.0 RILIS 2026-11-14** atas
+permintaan user ("tambahkan fitur terminal") — tab Terminal: konsol
+shell Shizuku (sesi `TermSession` di luar komposisi agar tak hilang
+saat ganti tab), riwayat persisten 50 (term_history.txt) ▲/▼, 8
+perintah cepat, konfirmasi pola destruktif, output cap tampilan
+20.000 char, non-interaktif (potong 120 dtk di service). CI
+`43531690654` HIJAU sekali jalan, APK 6.686.116 byte, SHA-256
+`a473f345…a992c`, signer SAMA (menimpa v0.6.0), izin tidak berubah.
+Menunggu uji lapangan terminal user. **v0.6.0 RILIS 2026-11-14** atas
 permintaan user ("cari fitur tersembunyi", keduanya dipilih) — tab
 Rahasia: `HiddenScanner` pindai kunci system/secure/global berpola
 menarik (ubah aman: snapshot generik `hidden:<ns>:<key>` + baca-balik;
